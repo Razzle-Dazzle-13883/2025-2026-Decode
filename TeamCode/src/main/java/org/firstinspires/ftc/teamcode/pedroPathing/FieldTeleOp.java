@@ -23,9 +23,11 @@ public class FieldTeleOp extends OpMode {
     private TelemetryManager telemetryM;
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
+    private Robot robot;
 
     @Override
     public void init() {
+        robot = new Robot(this);
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();

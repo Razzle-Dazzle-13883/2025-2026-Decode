@@ -1,7 +1,9 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.hardware.DcMotor;
+import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
 import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.IMU;
@@ -15,7 +17,7 @@ public class Robot {
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
     DcMotor intakeMotor;
-    DcMotor shooterMotor;
+    DcMotorEx shooterMotor;
 
     Servo ballKicker;
     Servo adjustHood;
@@ -29,8 +31,8 @@ public class Robot {
     int rightFrontPos = 0;
     int rightBackPos = 0;
 
-    private LinearOpMode myOpMode;
-    public Robot(LinearOpMode opMode){
+    private OpMode myOpMode;
+    public Robot(OpMode opMode){
         this.myOpMode = opMode;
     }
 
@@ -42,7 +44,7 @@ public class Robot {
         frontRightMotor = myOpMode.hardwareMap.dcMotor.get("frontRightMotor");
         backRightMotor = myOpMode.hardwareMap.dcMotor.get("backRightMotor");
         intakeMotor = myOpMode.hardwareMap.dcMotor.get("intakeMotor");
-        shooterMotor = myOpMode.hardwareMap.dcMotor.get("shooterMotor");
+        shooterMotor = (DcMotorEx)myOpMode.hardwareMap.dcMotor.get("shooterMotor");
 
         ballKicker = myOpMode.hardwareMap.servo.get("ballKicker");
         adjustHood = myOpMode.hardwareMap.servo.get("adjustHood");
@@ -114,12 +116,14 @@ public class Robot {
         frontRightMotor.setPower(speed);
         backRightMotor.setPower(speed);
 
-        waitDrive();
+        // waitDrive();
     }
 
+    /*
     private void waitDrive() {
         while (frontLeftMotor.isBusy() && frontRightMotor.isBusy() && backLeftMotor.isBusy() && backRightMotor.isBusy() && myOpMode.opModeIsActive()) ;
     }
+     */
 
     private void initIMU() {
         // Retrieve the IMU from the hardware map
