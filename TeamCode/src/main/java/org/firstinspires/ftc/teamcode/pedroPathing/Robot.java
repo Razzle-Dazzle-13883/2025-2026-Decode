@@ -24,7 +24,19 @@ public class Robot {
 
     IMU imu;
 
-    final int TICKS_PER_INCH = 45; // 11.87 in per rev; 537.7 ticks per rev; 537.7/11.87 ticks per inch
+    // final int TICKS_PER_INCH = 45; // 11.87 in per rev; 537.7 ticks per rev; 537.7/11.87 ticks per inch
+
+    double adjustHoodPos;
+    final double HOODNEAR = 0.0;
+    final double HOODFAR = 0.8;
+
+    double kickerPos;
+    final double KICKERIN = 0.0;
+    final double KICKEROUT = 1.0;
+
+    double intakeSpeed;
+    final double INTAKERUN = 0.8;
+    final double INTAKESTOP = 0.0;
 
     int leftFrontPos = 0;
     int leftBackPos = 0;
@@ -124,6 +136,14 @@ public class Robot {
         while (frontLeftMotor.isBusy() && frontRightMotor.isBusy() && backLeftMotor.isBusy() && backRightMotor.isBusy() && myOpMode.opModeIsActive()) ;
     }
      */
+
+    public void intakeOn() {
+        intakeMotor.setPower(INTAKERUN);
+    }
+
+    public void intakeOff() {
+        intakeMotor.setPower(INTAKESTOP);
+    }
 
     private void initIMU() {
         // Retrieve the IMU from the hardware map

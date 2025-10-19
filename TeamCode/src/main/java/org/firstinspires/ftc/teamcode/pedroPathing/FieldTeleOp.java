@@ -86,19 +86,12 @@ public class FieldTeleOp extends OpMode {
             automatedDrive = false;
         }
 
-        //Slow Mode
-        if (gamepad1.rightBumperWasPressed()) {
-            slowMode = !slowMode;
+        if (gamepad1.x) {
+            robot.intakeOn();
         }
 
-        //Optional way to change slow mode strength
-        if (gamepad1.xWasPressed()) {
-            slowModeMultiplier += 0.25;
-        }
-
-        //Optional way to change slow mode strength
-        if (gamepad2.yWasPressed()) {
-            slowModeMultiplier -= 0.25;
+        if (gamepad2.y) {
+            robot.intakeOff();
         }
 
         telemetryM.debug("position", follower.getPose());
