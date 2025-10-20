@@ -45,7 +45,7 @@ public class Robot {
     final double INTAKESTOP = 0.0;
 
     double shooterSpeed;
-    final double SHOOTERRUN = -0.8;
+    final double SHOOTERRUN = 0.8;
     final double SHOOTERSTOP = 0.0;
 
     int leftFrontPos = 0;
