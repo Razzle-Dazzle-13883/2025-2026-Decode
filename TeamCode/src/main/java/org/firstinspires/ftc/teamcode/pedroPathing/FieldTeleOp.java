@@ -89,14 +89,17 @@ public class FieldTeleOp extends OpMode {
 
         if (gamepad1.x) {
             robot.intakeOn();
+            robot.kickerOn();
         }
 
         if (gamepad1.y) {
             robot.intakeOff();
+            robot.kickerOff();
         }
 
         if (gamepad1.right_bumper) {
             robot.intakeRev();
+            robot.kickerRev();
         }
 
         telemetryM.debug("position", follower.getPose());

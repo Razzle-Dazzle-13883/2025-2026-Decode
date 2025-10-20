@@ -2,6 +2,7 @@ package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.qualcomm.robotcore.eventloop.opmode.LinearOpMode;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.hardware.CRServo;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.hardware.DcMotorEx;
 import com.qualcomm.robotcore.hardware.DcMotorSimple;
@@ -19,7 +20,7 @@ public class Robot {
     DcMotor intakeMotor;
     DcMotor shooterMotor;
 
-    // Servo ballKicker;
+    CRServo ballKicker;
     // Servo adjustHood;
 
     IMU imu;
@@ -33,8 +34,9 @@ public class Robot {
      */
 
     double kickerPos;
-    final double KICKERIN = 0.0;
-    final double KICKEROUT = 1.0;
+    final double KICKERRUN = -1;
+    final double KICKERSTOP = 0;
+    final double KICKERREVERSE = 1;
 
     double intakeSpeed;
     final double INTAKERUN = -0.4;
@@ -61,7 +63,13 @@ public class Robot {
         intakeMotor = myOpMode.hardwareMap.dcMotor.get("intakeMotor");
         shooterMotor = myOpMode.hardwareMap.dcMotor.get("shooterMotor");
 
-        // ballKicker = myOpMode.hardwareMap.servo.get("ballKicker");
+        try {
+            ballKicker = myOpMode.hardwareMap.get(CRServo.class, "ballKicker");
+        } catch (IllegalArgumentException e) {
+            ballKicker = null;
+            myOpMode.telemetry.addData("WARN", "CRServo 'ballKicker' not found in configuration");
+            myOpMode.telemetry.update();
+        }
         // adjustHood = myOpMode.hardwareMap.servo.get("adjustHood");
 
         /*
@@ -143,13 +151,21 @@ public class Robot {
     public void intakeOn() {
         intakeMotor.setPower(INTAKERUN);
     }
-
     public void intakeOff() {
         intakeMotor.setPower(INTAKESTOP);
     }
-
     public void intakeRev() {
         intakeMotor.setPower(INTAKEREVERSE);
+    }
+
+    public void kickerOn() {
+        if (ballKicker != null) ballKicker.setPower(KICKERRUN);
+    }
+    public void kickerOff() {
+        if (ballKicker != null) ballKicker.setPower(KICKERSTOP);
+    }
+    public void kickerRev() {
+        if (ballKicker != null) ballKicker.setPower(KICKERREVERSE);
     }
 
     private void initIMU() {
