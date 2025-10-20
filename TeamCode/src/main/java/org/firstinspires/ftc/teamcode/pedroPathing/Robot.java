@@ -37,7 +37,7 @@ public class Robot {
     final double KICKEROUT = 1.0;
 
     double intakeSpeed;
-    final double INTAKERUN = 0.8;
+    final double INTAKERUN = -0.4;
     final double INTAKESTOP = 0.0;
 
     int leftFrontPos = 0;
