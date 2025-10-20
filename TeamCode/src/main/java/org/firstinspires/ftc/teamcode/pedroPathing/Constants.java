@@ -24,8 +24,9 @@ public class Constants {
             .mass(6.1);
 
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
-            .forwardEncoder_HardwareMapName("leftRear")
-            .strafeEncoder_HardwareMapName("rightFront")
+            // Match hardwareMap names defined in Robot.initHardware()
+            .forwardEncoder_HardwareMapName("backLeftMotor")
+            .strafeEncoder_HardwareMapName("frontRightMotor")
             .forwardPodY(0)
             .strafePodX(3.25)
             .forwardEncoderDirection(Encoder.FORWARD)
@@ -45,14 +46,16 @@ public class Constants {
             .maxPower(1)
             .xVelocity(48.927269611338275)
             .yVelocity(50.29500274311308)
-            .rightFrontMotorName("rightFront")
-            .rightRearMotorName("rightRear")
-            .leftRearMotorName("leftRear")
-            .leftFrontMotorName("leftFront")
-            .leftFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .leftRearMotorDirection(DcMotorSimple.Direction.REVERSE)
-            .rightFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
-            .rightRearMotorDirection(DcMotorSimple.Direction.FORWARD);
+            // Match hardwareMap names defined in Robot.initHardware()
+            .rightFrontMotorName("frontRightMotor")
+            .rightRearMotorName("backRightMotor")
+            .leftRearMotorName("backLeftMotor")
+            .leftFrontMotorName("frontLeftMotor")
+            // Directions: reverse right side to match physical mounting
+            .leftFrontMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .leftRearMotorDirection(DcMotorSimple.Direction.FORWARD)
+            .rightFrontMotorDirection(DcMotorSimple.Direction.REVERSE)
+            .rightRearMotorDirection(DcMotorSimple.Direction.REVERSE);
 
     public static Follower createFollower(HardwareMap hardwareMap) {
         return new FollowerBuilder(followerConstants, hardwareMap)
