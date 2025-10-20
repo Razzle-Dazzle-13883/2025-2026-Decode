@@ -20,15 +20,17 @@ public class Robot {
     DcMotorEx shooterMotor;
 
     Servo ballKicker;
-    Servo adjustHood;
+    // Servo adjustHood;
 
     IMU imu;
 
     // final int TICKS_PER_INCH = 45; // 11.87 in per rev; 537.7 ticks per rev; 537.7/11.87 ticks per inch
 
+    /*
     double adjustHoodPos;
     final double HOODNEAR = 0.0;
     final double HOODFAR = 0.8;
+     */
 
     double kickerPos;
     final double KICKERIN = 0.0;
@@ -59,7 +61,7 @@ public class Robot {
         shooterMotor = (DcMotorEx)myOpMode.hardwareMap.dcMotor.get("shooterMotor");
 
         ballKicker = myOpMode.hardwareMap.servo.get("ballKicker");
-        adjustHood = myOpMode.hardwareMap.servo.get("adjustHood");
+        // adjustHood = myOpMode.hardwareMap.servo.get("adjustHood");
 
         /*
         frontLeftMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
