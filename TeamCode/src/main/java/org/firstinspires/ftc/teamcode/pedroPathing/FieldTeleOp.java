@@ -74,7 +74,7 @@ public class FieldTeleOp extends OpMode {
                     true // Robot Centric
             );
         }
-
+/*
         //Automated PathFollowing
         if (gamepad1.aWasPressed()) {
             follower.followPath(pathChain.get());
@@ -86,7 +86,7 @@ public class FieldTeleOp extends OpMode {
             follower.startTeleopDrive();
             automatedDrive = false;
         }
-
+ */
         if (gamepad1.x) {
             robot.intakeOn();
             robot.kickerOn();
@@ -100,6 +100,20 @@ public class FieldTeleOp extends OpMode {
         if (gamepad1.right_bumper) {
             robot.intakeRev();
             robot.kickerRev();
+        }
+
+        if (gamepad1.dpad_up) {
+            robot.shooterOn();
+            robot.kickerRev();
+        }
+
+        if (gamepad1.dpad_down) {
+            robot.shooterOff();
+            robot.kickerOff();
+        }
+
+        if (gamepad1.a) {
+            robot.intakeShoot();
         }
 
         telemetryM.debug("position", follower.getPose());

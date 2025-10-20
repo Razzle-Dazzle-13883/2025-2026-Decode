@@ -41,7 +41,12 @@ public class Robot {
     double intakeSpeed;
     final double INTAKERUN = -0.4;
     final double INTAKEREVERSE = 0.4;
+    final double INTAKESHOOTER = -0.6;
     final double INTAKESTOP = 0.0;
+
+    double shooterSpeed;
+    final double SHOOTERRUN = -0.8;
+    final double SHOOTERSTOP = 0.0;
 
     int leftFrontPos = 0;
     int leftBackPos = 0;
@@ -157,6 +162,7 @@ public class Robot {
     public void intakeRev() {
         intakeMotor.setPower(INTAKEREVERSE);
     }
+    public void intakeShoot() {intakeMotor.setPower(INTAKESHOOTER); }
 
     public void kickerOn() {
         if (ballKicker != null) ballKicker.setPower(KICKERRUN);
@@ -167,6 +173,9 @@ public class Robot {
     public void kickerRev() {
         if (ballKicker != null) ballKicker.setPower(KICKERREVERSE);
     }
+
+    public void shooterOn() { shooterMotor.setPower(SHOOTERRUN); }
+    public void shooterOff() { shooterMotor.setPower(SHOOTERSTOP); }
 
     private void initIMU() {
         // Retrieve the IMU from the hardware map
