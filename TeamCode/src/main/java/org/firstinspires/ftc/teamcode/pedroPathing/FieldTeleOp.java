@@ -28,6 +28,7 @@ public class FieldTeleOp extends OpMode {
     @Override
     public void init() {
         robot = new Robot(this);
+        robot.initHardware(); // Initialize all hardware components
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
