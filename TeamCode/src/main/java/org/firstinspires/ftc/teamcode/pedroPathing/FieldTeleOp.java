@@ -91,7 +91,7 @@ public class FieldTeleOp extends OpMode {
             robot.intakeOn();
         }
 
-        if (gamepad2.y) {
+        if (gamepad1.y) {
             robot.intakeOff();
         }
 
