@@ -38,6 +38,7 @@ public class Robot {
 
     double intakeSpeed;
     final double INTAKERUN = -0.4;
+    final double INTAKEREVERSE = 0.4;
     final double INTAKESTOP = 0.0;
 
     int leftFrontPos = 0;
@@ -145,6 +146,10 @@ public class Robot {
 
     public void intakeOff() {
         intakeMotor.setPower(INTAKESTOP);
+    }
+
+    public void intakeRev() {
+        intakeMotor.setPower(INTAKEREVERSE);
     }
 
     private void initIMU() {

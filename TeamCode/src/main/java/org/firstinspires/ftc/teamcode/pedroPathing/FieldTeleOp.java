@@ -95,6 +95,10 @@ public class FieldTeleOp extends OpMode {
             robot.intakeOff();
         }
 
+        if (gamepad1.right_bumper) {
+            robot.intakeRev();
+        }
+
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
