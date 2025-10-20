@@ -17,9 +17,9 @@ public class Robot {
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
     DcMotor intakeMotor;
-    DcMotorEx shooterMotor;
+    DcMotor shooterMotor;
 
-    Servo ballKicker;
+    // Servo ballKicker;
     // Servo adjustHood;
 
     IMU imu;
@@ -58,9 +58,9 @@ public class Robot {
         frontRightMotor = myOpMode.hardwareMap.dcMotor.get("frontRightMotor");
         backRightMotor = myOpMode.hardwareMap.dcMotor.get("backRightMotor");
         intakeMotor = myOpMode.hardwareMap.dcMotor.get("intakeMotor");
-        shooterMotor = (DcMotorEx)myOpMode.hardwareMap.dcMotor.get("shooterMotor");
+        shooterMotor = myOpMode.hardwareMap.dcMotor.get("shooterMotor");
 
-        ballKicker = myOpMode.hardwareMap.servo.get("ballKicker");
+        // ballKicker = myOpMode.hardwareMap.servo.get("ballKicker");
         // adjustHood = myOpMode.hardwareMap.servo.get("adjustHood");
 
         /*
