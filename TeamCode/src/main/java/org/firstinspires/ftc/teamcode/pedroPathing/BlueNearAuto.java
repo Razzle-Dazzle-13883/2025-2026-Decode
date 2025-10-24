@@ -9,16 +9,16 @@ import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
-@Autonomous(name = "BlueFarAuto", group = "Auto")
-public class BlueFarAuto extends OpMode {
+@Autonomous(name = "BlueNearAuto", group = "Auto")
+public class BlueNearAuto extends OpMode {
     private Robot robot;
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
     private int pathState;
-    private final Pose startPose = new Pose(61.6, 9.3, Math.toRadians(90)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(37.0, 119.1, Math.toRadians(142)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose startPose = new Pose(24.8, 127.5, Math.toRadians(142)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(36.7, 117.3, Math.toRadians(142)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup1Pose = new Pose(37, 121, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2Pose = new Pose(43, 130, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
     private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
