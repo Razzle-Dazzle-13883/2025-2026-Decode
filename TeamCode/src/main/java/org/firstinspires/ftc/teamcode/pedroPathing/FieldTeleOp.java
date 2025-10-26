@@ -24,6 +24,22 @@ public class FieldTeleOp extends OpMode {
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
     private Robot robot;
+    
+    // Turn control variables for smooth turning
+    private double currentTurnRate = 0.0;
+    private double targetTurnRate = 0.0;
+    private double turnAcceleration = 0.12; // How fast the turn rate changes (0.01 = very slow, 0.2 = very fast)
+    private double turnExponent = 1.5; // Higher = more exponential curve (1.0 = linear, 2.0+ = exponential)
+    private double maxTurnRate = 1.0; // Maximum turn rate
+    private double minTurnThreshold = 0.05; // Minimum input to start turning
+    private double maxPowerDelay = 0.3; // Time in seconds to hold full stick before reaching max power
+    private double timeAtMaxInput = 0.0; // Time spent at maximum input
+    private double currentMaxAllowedRate = 0.0; // Current maximum allowed turn rate
+    
+    // Intake slow timing variables
+    private boolean intakeSlowActive = false;
+    private double intakeSlowStartTime = 0.0;
+    private double intakeSlowDuration = 0.4; // Duration in seconds for intake slow (400ms)
 
     @Override
     public void init() {
@@ -47,6 +63,51 @@ public class FieldTeleOp extends OpMode {
         //If you don't pass anything in, it uses the default (false)
         follower.startTeleopDrive();
     }
+    
+    /**
+     * Applies smooth, exponential turning control to the joystick input
+     * @param rawTurnInput Raw joystick input (-1.0 to 1.0)
+     * @return Smoothed turn rate (-1.0 to 1.0)
+     */
+    private double applySmoothTurning(double rawTurnInput) {
+        // Apply exponential curve to the input for more gradual response
+        double sign = Math.signum(rawTurnInput);
+        double magnitude = Math.abs(rawTurnInput);
+        
+        // If input is below threshold, set to zero for fine control
+        if (magnitude < minTurnThreshold) {
+            targetTurnRate = 0.0;
+            timeAtMaxInput = 0.0; // Reset timer when not at max input
+        } else {
+            // Apply exponential curve (magnitude^exponent) for better fine control
+            magnitude = Math.pow(magnitude, turnExponent);
+            
+            // Check if we're at maximum input (very close to 1.0)
+            if (magnitude > 0.95) {
+                timeAtMaxInput += 0.02; // Assuming ~50Hz loop rate
+                
+                // Gradually increase max allowed rate based on time at max input
+                double maxAllowedRate = Math.min(1.0, timeAtMaxInput / maxPowerDelay);
+                currentMaxAllowedRate = maxAllowedRate;
+            } else {
+                timeAtMaxInput = 0.0; // Reset timer when not at max input
+                currentMaxAllowedRate = 1.0; // Allow full rate for non-max inputs
+            }
+            
+            // Set target turn rate, but limit it based on time at max input
+            targetTurnRate = sign * magnitude * maxTurnRate * currentMaxAllowedRate;
+        }
+        
+        // Smoothly transition current turn rate towards target
+        if (Math.abs(targetTurnRate - currentTurnRate) < turnAcceleration) {
+            currentTurnRate = targetTurnRate;
+        } else {
+            double direction = Math.signum(targetTurnRate - currentTurnRate);
+            currentTurnRate += direction * turnAcceleration;
+        }
+        
+        return currentTurnRate;
+    }
 
     @Override
     public void loop() {
@@ -58,11 +119,14 @@ public class FieldTeleOp extends OpMode {
             //Make the last parameter false for field-centric
             //In case the drivers want to use a "slowMode" you can scale the vectors
 
+            // Apply smooth turning to the right stick input
+            double smoothTurnRate = applySmoothTurning(-gamepad1.right_stick_x);
+            
             //This is the normal version to use in the TeleOp
             if (!slowMode) follower.setTeleOpDrive(
                     -gamepad1.left_stick_y,
                     -gamepad1.left_stick_x,
-                    -gamepad1.right_stick_x,
+                    smoothTurnRate,
                     true // Robot Centric
             );
 
@@ -70,7 +134,7 @@ public class FieldTeleOp extends OpMode {
             else follower.setTeleOpDrive(
                     -gamepad1.left_stick_y * slowModeMultiplier,
                     -gamepad1.left_stick_x * slowModeMultiplier,
-                    -gamepad1.right_stick_x * slowModeMultiplier,
+                    smoothTurnRate * slowModeMultiplier,
                     true // Robot Centric
             );
         }
@@ -120,6 +184,10 @@ public class FieldTeleOp extends OpMode {
 
         if (gamepad1.dpad_right) {
             robot.shooterRev();
+            robot.kickerOn();
+            // Start intake slow sequence
+            intakeSlowActive = true;
+            intakeSlowStartTime = time;
         }
 
         if (gamepad1.dpad_left) {
@@ -127,8 +195,25 @@ public class FieldTeleOp extends OpMode {
             robot.kickerOn();
         }
 
+        // Handle intake slow sequence
+        if (intakeSlowActive) {
+            double elapsedTime = time - intakeSlowStartTime;
+            if (elapsedTime < intakeSlowDuration) {
+                // Run intake slow for the duration
+                robot.intakeSlow();
+            } else {
+                // After duration, turn off intake
+                robot.intakeOff();
+                intakeSlowActive = false;
+            }
+        }
+
         telemetryM.debug("position", follower.getPose());
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
+        telemetryM.debug("rawTurnInput", -gamepad1.right_stick_x);
+        telemetryM.debug("smoothTurnRate", currentTurnRate);
+        telemetryM.debug("timeAtMaxInput", timeAtMaxInput);
+        telemetryM.debug("maxAllowedRate", currentMaxAllowedRate);
     }
 }
