@@ -152,39 +152,32 @@ public class FieldTeleOp extends OpMode {
         }
  */
         if (gamepad1.x) {
-            robot.intakeOn();
-            robot.kickerOn();
+            robot.kickerUp();
         }
 
         if (gamepad1.y) {
-            robot.intakeOff();
-            robot.kickerOff();
+            robot.kickerDown();
         }
 
         if (gamepad1.right_bumper) {
             robot.intakeRev();
-            robot.kickerRev();
         }
 
         if (gamepad1.dpad_up) {
             robot.shooterOn();
-            robot.kickerRev();
         }
 
         if (gamepad1.dpad_down) {
             robot.shooterOff();
-            robot.kickerOff();
             robot.intakeOff();
         }
 
         if (gamepad1.a) {
             robot.intakeShoot();
-            robot.kickerOn();
         }
 
         if (gamepad1.dpad_right) {
             robot.shooterRev();
-            robot.kickerOn();
             // Start intake slow sequence
             intakeSlowActive = true;
             intakeSlowStartTime = time;
@@ -192,7 +185,6 @@ public class FieldTeleOp extends OpMode {
 
         if (gamepad1.dpad_left) {
             robot.intakeFast();
-            robot.kickerOn();
         }
 
         // Handle intake slow sequence

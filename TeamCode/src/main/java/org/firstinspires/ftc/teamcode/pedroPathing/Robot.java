@@ -20,7 +20,8 @@ public class Robot {
     DcMotor intakeMotor;
     DcMotor shooterMotor;
 
-    CRServo ballKicker;
+    Servo leftKicker;
+    // CRServo rightKicker;
     // Servo adjustHood;
 
     IMU imu;
@@ -33,10 +34,9 @@ public class Robot {
     final double HOODFAR = 0.8;
      */
 
-    double kickerPos;
-    final double KICKERRUN = -1;
-    final double KICKERSTOP = 0;
-    final double KICKERREVERSE = 1;
+    // double kickerPos;
+    final double KICKERUP = 0;
+    final double KICKERDOWN = 0.35;
 
     double intakeSpeed;
     final double INTAKERUN = -0.4;
@@ -71,13 +71,15 @@ public class Robot {
         intakeMotor = myOpMode.hardwareMap.dcMotor.get("intakeMotor");
         shooterMotor = myOpMode.hardwareMap.dcMotor.get("shooterMotor");
 
+
         try {
-            ballKicker = myOpMode.hardwareMap.get(CRServo.class, "ballKicker");
+            leftKicker = myOpMode.hardwareMap.get(Servo.class, "leftKicker");
         } catch (IllegalArgumentException e) {
-            ballKicker = null;
-            myOpMode.telemetry.addData("WARN", "CRServo 'ballKicker' not found in configuration");
+            leftKicker = null;
+            myOpMode.telemetry.addData("WARN", "Servo 'leftKicker' not found in configuration");
             myOpMode.telemetry.update();
         }
+
         // adjustHood = myOpMode.hardwareMap.servo.get("adjustHood");
 
         /*
@@ -169,15 +171,9 @@ public class Robot {
     public void intakeFast() {intakeMotor.setPower(INTAKEFAST); }
     public void intakeSlow() {intakeMotor.setPower(INTAKESLOW); }
 
-    public void kickerOn() {
-        if (ballKicker != null) ballKicker.setPower(KICKERRUN);
+    public void kickerUp() { leftKicker.setPosition(KICKERUP);
     }
-    public void kickerOff() {
-        if (ballKicker != null) ballKicker.setPower(KICKERSTOP);
-    }
-    public void kickerRev() {
-        if (ballKicker != null) ballKicker.setPower(KICKERREVERSE);
-    }
+    public void kickerDown() { leftKicker.setPosition(KICKERDOWN); }
 
     public void shooterOn() { shooterMotor.setPower(SHOOTERRUN); }
     public void shooterOff() { shooterMotor.setPower(SHOOTERSTOP); }

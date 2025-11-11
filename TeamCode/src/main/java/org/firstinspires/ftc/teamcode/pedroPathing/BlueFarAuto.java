@@ -87,18 +87,18 @@ public class BlueFarAuto extends OpMode {
                 if(!follower.isBusy()) {
                     /* Score Preload */
                     robot.shooterOn();
-                    robot.kickerRev();
+                    // robot.kickerRev();
 
                     pathTimer.resetTimer();
 
                     while (pathTimer.getElapsedTimeSeconds() <= 4) {}
                     robot.intakeShoot();
-                    robot.kickerOn();
+                    // robot.kickerOn();
 
                     pathTimer.resetTimer();
                     while (pathTimer.getElapsedTimeSeconds() <= 7) {}
                     robot.shooterOff();
-                    robot.kickerOff();
+                    // robot.kickerOff();
                     robot.intakeOff();
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
