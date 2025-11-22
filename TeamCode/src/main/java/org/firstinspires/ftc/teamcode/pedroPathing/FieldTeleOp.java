@@ -10,6 +10,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 import com.qualcomm.robotcore.eventloop.opmode.TeleOp;
+import com.pedropathing.util.Timer;
 
 import java.util.function.Supplier;
 
@@ -41,6 +42,8 @@ public class FieldTeleOp extends OpMode {
     private double intakeSlowStartTime = 0.0;
     private double intakeSlowDuration = 0.4; // Duration in seconds for intake slow (400ms)
 
+    private Timer pathTimer;
+
     @Override
     public void init() {
         robot = new Robot(this);
@@ -49,6 +52,8 @@ public class FieldTeleOp extends OpMode {
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
+
+        pathTimer = new Timer();
 
         pathChain = () -> follower.pathBuilder() //Lazy Curve Generation
                 .addPath(new Path(new BezierLine(follower::getPose, new Pose(45, 98))))
@@ -170,6 +175,7 @@ public class FieldTeleOp extends OpMode {
         if (gamepad1.dpad_down) {
             robot.shooterOff();
             robot.intakeOff();
+            robot.kickerDown();
         }
 
         if (gamepad1.a) {
@@ -185,6 +191,35 @@ public class FieldTeleOp extends OpMode {
 
         if (gamepad1.dpad_left) {
             robot.intakeFast();
+        }
+
+        if (gamepad1.b) {
+            robot.shooterOn();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 4) {}
+            robot.kickerUp();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+            robot.kickerDown();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 4) {}
+            robot.intakeShoot();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+            robot.kickerUp();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+            robot.kickerDown();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 4) {}
+            robot.kickerUp();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+            robot.kickerDown();
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+            robot.shooterOff();
+            robot.intakeOff();
         }
 
         // Handle intake slow sequence

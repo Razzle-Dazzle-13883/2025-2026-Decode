@@ -21,18 +21,18 @@ public class Constants {
             .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.02))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025,0,0.00001,0.6,0.01))
             .centripetalScaling(0.0002)
-            .mass(7.71);
+            .mass(8.35);
 
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             // Match hardwareMap names defined in Robot.initHardware()
-            .forwardEncoder_HardwareMapName("backLeftMotor")
-            .strafeEncoder_HardwareMapName("frontRightMotor")
-            .forwardPodY(-0.5)
-            .strafePodX(-3.5)
-            .forwardEncoderDirection(Encoder.REVERSE)
-            .strafeEncoderDirection(Encoder.REVERSE)
+            .forwardEncoder_HardwareMapName("frontRightMotor")
+            .strafeEncoder_HardwareMapName("backRightMotor")
+            .forwardPodY(-2)
+            .strafePodX(-5.5)
+            .forwardEncoderDirection(Encoder.FORWARD)
+            .strafeEncoderDirection(Encoder.FORWARD)
             .forwardTicksToInches(0.00052255)
-            .strafeTicksToInches(0.00054252)
+            // .strafeTicksToInches(0.004285131)
             .IMU_HardwareMapName("imu")
             .IMU_Orientation(
                     new RevHubOrientationOnRobot(
@@ -44,7 +44,7 @@ public class Constants {
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
-            .xVelocity(76.79468480212833)
+            .xVelocity(60.55591331430678)
             .yVelocity(35.1735275041384)
             // Match hardwareMap names defined in Robot.initHardware()
             .rightFrontMotorName("frontRightMotor")

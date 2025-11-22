@@ -47,7 +47,7 @@ public class Robot {
     final double INTAKESLOW = -0.2;
 
     double shooterSpeed;
-    final double SHOOTERRUN = 0.75;
+    final double SHOOTERRUN = 0.82;
     final double SHOOTERSTOP = 0.0;
     final double SHOOTERREVERSE = -0.5;
 
