@@ -48,6 +48,7 @@ public class Robot {
 
     double shooterSpeed;
     final double SHOOTERRUN = 0.82;
+    final double SHOOTERCLOSE = 0.55;
     final double SHOOTERSTOP = 0.0;
     final double SHOOTERREVERSE = -0.5;
 
@@ -176,6 +177,7 @@ public class Robot {
     public void kickerDown() { leftKicker.setPosition(KICKERDOWN); }
 
     public void shooterOn() { shooterMotor.setPower(SHOOTERRUN); }
+    public void shooterClose() { shooterMotor.setPower(SHOOTERCLOSE); }
     public void shooterOff() { shooterMotor.setPower(SHOOTERSTOP); }
     public void shooterRev() { shooterMotor.setPower(SHOOTERREVERSE); }
 

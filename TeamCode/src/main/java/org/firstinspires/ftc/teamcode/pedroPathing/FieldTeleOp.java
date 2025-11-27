@@ -41,7 +41,14 @@ public class FieldTeleOp extends OpMode {
     private boolean intakeSlowActive = false;
     private double intakeSlowStartTime = 0.0;
     private double intakeSlowDuration = 0.4; // Duration in seconds for intake slow (400ms)
-
+    
+    // B button sequence state machine
+    private enum BSequenceState {
+        IDLE, SHOOTER_ON_WAIT, KICKER_UP_WAIT_1, KICKER_DOWN_WAIT_1,
+        INTAKE_SHOOT_WAIT, KICKER_UP_WAIT_2, KICKER_DOWN_WAIT_2,
+        KICKER_UP_WAIT_3, KICKER_DOWN_WAIT_3, SHOOTER_OFF_WAIT
+    }
+    private BSequenceState sequenceState = BSequenceState.IDLE;
     private Timer pathTimer;
 
     @Override
@@ -176,10 +183,16 @@ public class FieldTeleOp extends OpMode {
             robot.shooterOff();
             robot.intakeOff();
             robot.kickerDown();
+            sequenceState = BSequenceState.IDLE; // Reset sequence state
         }
 
         if (gamepad1.a) {
-            robot.intakeShoot();
+            // Handle A button sequence with state machine (instead of B)
+            if (sequenceState == BSequenceState.IDLE) {
+                robot.shooterClose(); // Use close range shooter power (0.64)
+                pathTimer.resetTimer();
+                sequenceState = BSequenceState.SHOOTER_ON_WAIT;
+            }
         }
 
         if (gamepad1.dpad_right) {
@@ -193,33 +206,79 @@ public class FieldTeleOp extends OpMode {
             robot.intakeFast();
         }
 
-        if (gamepad1.b) {
-            robot.shooterOn();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 4) {}
-            robot.kickerUp();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-            robot.kickerDown();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 4) {}
-            robot.intakeShoot();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-            robot.kickerUp();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-            robot.kickerDown();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 4) {}
-            robot.kickerUp();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-            robot.kickerDown();
-            pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-            robot.shooterOff();
-            robot.intakeOff();
+
+        // State machine for A button sequence (originally was for B button)
+        switch (sequenceState) {
+            case SHOOTER_ON_WAIT:
+                if (pathTimer.getElapsedTimeSeconds() >= 4 || gamepad1.dpad_down) {
+                    if (!gamepad1.dpad_down) {
+                        robot.kickerUp();
+                    }
+                    pathTimer.resetTimer();
+                    sequenceState = BSequenceState.KICKER_UP_WAIT_1;
+                }
+                break;
+            case KICKER_UP_WAIT_1:
+                if (pathTimer.getElapsedTimeSeconds() >= 1 || gamepad1.dpad_down) {
+                    if (!gamepad1.dpad_down) {
+                        robot.kickerDown();
+                    }
+                    pathTimer.resetTimer();
+                    sequenceState = BSequenceState.KICKER_DOWN_WAIT_1;
+                }
+                break;
+            case KICKER_DOWN_WAIT_1:
+                if (pathTimer.getElapsedTimeSeconds() >= 2 || gamepad1.dpad_down) {
+                    if (!gamepad1.dpad_down) {
+                        robot.intakeShoot();
+                    }
+                    pathTimer.resetTimer();
+                    sequenceState = BSequenceState.INTAKE_SHOOT_WAIT;
+                }
+                break;
+            case INTAKE_SHOOT_WAIT:
+                if (pathTimer.getElapsedTimeSeconds() >= 1 || gamepad1.dpad_down) {
+                    if (!gamepad1.dpad_down) {
+                        robot.kickerUp();
+                    }
+                    pathTimer.resetTimer();
+                    sequenceState = BSequenceState.KICKER_UP_WAIT_2;
+                }
+                break;
+            case KICKER_UP_WAIT_2:
+                if (pathTimer.getElapsedTimeSeconds() >= 1 || gamepad1.dpad_down) {
+                    if (!gamepad1.dpad_down) {
+                        robot.kickerDown();
+                    }
+                    pathTimer.resetTimer();
+                    sequenceState = BSequenceState.KICKER_DOWN_WAIT_2;
+                }
+                break;
+            case KICKER_DOWN_WAIT_2:
+                if (pathTimer.getElapsedTimeSeconds() >= 2 || gamepad1.dpad_down) {
+                    if (!gamepad1.dpad_down) {
+                        robot.kickerUp();
+                    }
+                    pathTimer.resetTimer();
+                    sequenceState = BSequenceState.KICKER_UP_WAIT_3;
+                }
+                break;
+            case KICKER_UP_WAIT_3:
+                if (pathTimer.getElapsedTimeSeconds() >= 1 || gamepad1.dpad_down) {
+                    if (!gamepad1.dpad_down) {
+                        robot.kickerDown();
+                    }
+                    pathTimer.resetTimer();
+                    sequenceState = BSequenceState.KICKER_DOWN_WAIT_3;
+                }
+                break;
+            case KICKER_DOWN_WAIT_3:
+                if (pathTimer.getElapsedTimeSeconds() >= 1 || gamepad1.dpad_down) {
+                    robot.shooterOff();
+                    robot.intakeOff();
+                    sequenceState = BSequenceState.IDLE;
+                }
+                break;
         }
 
         // Handle intake slow sequence

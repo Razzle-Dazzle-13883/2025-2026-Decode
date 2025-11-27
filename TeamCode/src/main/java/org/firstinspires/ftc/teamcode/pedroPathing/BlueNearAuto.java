@@ -16,9 +16,17 @@ public class BlueNearAuto extends OpMode {
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
 
+    // Shooter sequence state machine (from FieldTeleOp)
+    private enum ShooterSequenceState {
+        IDLE, SHOOTER_ON_WAIT, KICKER_UP_WAIT_1, KICKER_DOWN_WAIT_1,
+        INTAKE_SHOOT_WAIT, KICKER_UP_WAIT_2, KICKER_DOWN_WAIT_2,
+        KICKER_UP_WAIT_3, KICKER_DOWN_WAIT_3, SHOOTER_OFF_WAIT
+    }
+    private ShooterSequenceState sequenceState = ShooterSequenceState.IDLE;
+
     private int pathState;
-    private final Pose startPose = new Pose(24.8, 127.5, Math.toRadians(150)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(36.7, 117.3, Math.toRadians(150)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose startPose = new Pose(23.92258064516129, 125.88387096774194, Math.toRadians(143)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(52.95483870967742, 97.08387096774193, Math.toRadians(143)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup1Pose = new Pose(37, 121, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2Pose = new Pose(43, 130, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
     private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
@@ -85,26 +93,12 @@ public class BlueNearAuto extends OpMode {
 
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if(!follower.isBusy()) {
-                    /* Score Preload */
-                    robot.shooterOn();
-                    // robot.kickerRev();
-
+                    // Start the shooter sequence that was originally on A button in FieldTeleOp
+                    // Using shooterClose (0.64 power) like in the updated A button
+                    robot.shooterClose(); // Use close range shooter power (0.64)
                     pathTimer.resetTimer();
-
-                    while (pathTimer.getElapsedTimeSeconds() <= 4) {}
-                    robot.intakeShoot();
-                    // robot.kickerOn();
-
-                    pathTimer.resetTimer();
-                    while (pathTimer.getElapsedTimeSeconds() <= 7) {}
-                    robot.shooterOff();
-                    // robot.kickerOff();
-                    robot.intakeOff();
-
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    // follower.followPath(grabPickup1,true);
-                    // setPathState(2);
-                    setPathState(-1); // stop for now
+                    sequenceState = ShooterSequenceState.SHOOTER_ON_WAIT; // Begin shooter sequence
+                    setPathState(10); // Move to shooter sequence state
                 }
                 break;
             case 2:
@@ -164,6 +158,15 @@ public class BlueNearAuto extends OpMode {
                     setPathState(-1);
                 }
                 break;
+            case 10: // Shooter sequence state
+                // Run the complete shooter sequence state machine
+                runShooterSequence();
+
+                // When the sequence is complete (back to IDLE), stop the autonomous
+                if (sequenceState == ShooterSequenceState.IDLE) {
+                    setPathState(-1); // Stop the autonomous after sequence completes
+                }
+                break;
         }
     }
 
@@ -185,6 +188,7 @@ public class BlueNearAuto extends OpMode {
         telemetry.addData("x", follower.getPose().getX());
         telemetry.addData("y", follower.getPose().getY());
         telemetry.addData("heading", follower.getPose().getHeading());
+        telemetry.addData("sequence state", sequenceState);
         telemetry.update();
     }
 
@@ -207,6 +211,68 @@ public class BlueNearAuto extends OpMode {
     /** This method is called continuously after Init while waiting for "play". **/
     @Override
     public void init_loop() {}
+
+    /** Runs the shooter sequence state machine that was originally in FieldTeleOp for A button **/
+    private void runShooterSequence() {
+        switch (sequenceState) {
+            case SHOOTER_ON_WAIT:
+                if (pathTimer.getElapsedTimeSeconds() >= 4) {
+                    robot.kickerUp();
+                    pathTimer.resetTimer();
+                    sequenceState = ShooterSequenceState.KICKER_UP_WAIT_1;
+                }
+                break;
+            case KICKER_UP_WAIT_1:
+                if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    robot.kickerDown();
+                    pathTimer.resetTimer();
+                    sequenceState = ShooterSequenceState.KICKER_DOWN_WAIT_1;
+                }
+                break;
+            case KICKER_DOWN_WAIT_1:
+                if (pathTimer.getElapsedTimeSeconds() >= 4) {
+                    robot.intakeShoot();
+                    pathTimer.resetTimer();
+                    sequenceState = ShooterSequenceState.INTAKE_SHOOT_WAIT;
+                }
+                break;
+            case INTAKE_SHOOT_WAIT:
+                if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    robot.kickerUp();
+                    pathTimer.resetTimer();
+                    sequenceState = ShooterSequenceState.KICKER_UP_WAIT_2;
+                }
+                break;
+            case KICKER_UP_WAIT_2:
+                if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    robot.kickerDown();
+                    pathTimer.resetTimer();
+                    sequenceState = ShooterSequenceState.KICKER_DOWN_WAIT_2;
+                }
+                break;
+            case KICKER_DOWN_WAIT_2:
+                if (pathTimer.getElapsedTimeSeconds() >= 4) {
+                    robot.kickerUp();
+                    pathTimer.resetTimer();
+                    sequenceState = ShooterSequenceState.KICKER_UP_WAIT_3;
+                }
+                break;
+            case KICKER_UP_WAIT_3:
+                if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    robot.kickerDown();
+                    pathTimer.resetTimer();
+                    sequenceState = ShooterSequenceState.KICKER_DOWN_WAIT_3;
+                }
+                break;
+            case KICKER_DOWN_WAIT_3:
+                if (pathTimer.getElapsedTimeSeconds() >= 1) {
+                    robot.shooterOff();
+                    robot.intakeOff();
+                    sequenceState = ShooterSequenceState.IDLE;
+                }
+                break;
+        }
+    }
 
     /** This method is called once at the start of the OpMode.
      * It runs all the setup actions, including building paths and starting the path system **/
