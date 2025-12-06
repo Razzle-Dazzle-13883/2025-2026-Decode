@@ -10,7 +10,9 @@ import com.qualcomm.robotcore.hardware.Servo;
 import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
+import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
 public class Robot {
     DcMotor frontLeftMotor;
@@ -18,7 +20,9 @@ public class Robot {
     DcMotor frontRightMotor;
     DcMotor backRightMotor;
     DcMotor intakeMotor;
-    DcMotor shooterMotor;
+    DcMotor leftShooterMotor;
+    DcMotor rightShooterMotor;
+    DcMotor turretMotor;
 
     Servo leftKicker;
     // CRServo rightKicker;
@@ -35,8 +39,8 @@ public class Robot {
      */
 
     // double kickerPos;
-    final double KICKERUP = 0;
-    final double KICKERDOWN = 0.35;
+    final double KICKERUP = 0.5;
+    final double KICKERDOWN = 0.3;
 
     double intakeSpeed;
     final double INTAKERUN = -0.4;
@@ -47,7 +51,7 @@ public class Robot {
     final double INTAKESLOW = -0.2;
 
     double shooterSpeed;
-    final double SHOOTERRUN = 0.82;
+    final double SHOOTERRUN = 0.8;
     final double SHOOTERCLOSE = 0.55;
     final double SHOOTERSTOP = 0.0;
     final double SHOOTERREVERSE = -0.5;
@@ -70,7 +74,9 @@ public class Robot {
         frontRightMotor = myOpMode.hardwareMap.dcMotor.get("frontRightMotor");
         backRightMotor = myOpMode.hardwareMap.dcMotor.get("backRightMotor");
         intakeMotor = myOpMode.hardwareMap.dcMotor.get("intakeMotor");
-        shooterMotor = myOpMode.hardwareMap.dcMotor.get("shooterMotor");
+        leftShooterMotor = myOpMode.hardwareMap.dcMotor.get("leftShooterMotor");
+        rightShooterMotor = myOpMode.hardwareMap.dcMotor.get("rightShooterMotor");
+        turretMotor = myOpMode.hardwareMap.dcMotor.get("turretMotor");
 
 
         try {
@@ -100,13 +106,19 @@ public class Robot {
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
         // reverse the left side instead.
         frontRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         backRightMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        
+        // Reverse both shooter motors
+        leftShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        rightShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         initIMU();
     }
@@ -124,7 +136,8 @@ public class Robot {
         frontRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        shooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void drive(int lF, int lB, int rF, int rB, double speed) {
@@ -176,10 +189,64 @@ public class Robot {
     }
     public void kickerDown() { leftKicker.setPosition(KICKERDOWN); }
 
-    public void shooterOn() { shooterMotor.setPower(SHOOTERRUN); }
-    public void shooterClose() { shooterMotor.setPower(SHOOTERCLOSE); }
-    public void shooterOff() { shooterMotor.setPower(SHOOTERSTOP); }
-    public void shooterRev() { shooterMotor.setPower(SHOOTERREVERSE); }
+    public void shooterOn() { 
+        leftShooterMotor.setPower(SHOOTERRUN);
+        rightShooterMotor.setPower(SHOOTERRUN);
+    }
+    public void shooterClose() { 
+        leftShooterMotor.setPower(SHOOTERCLOSE);
+        rightShooterMotor.setPower(SHOOTERCLOSE);
+    }
+    public void shooterOff() { 
+        leftShooterMotor.setPower(SHOOTERSTOP);
+        rightShooterMotor.setPower(SHOOTERSTOP);
+    }
+    public void shooterRev() { 
+        leftShooterMotor.setPower(SHOOTERREVERSE);
+        rightShooterMotor.setPower(SHOOTERREVERSE);
+    }
+
+    public void turretTurnLeft() { turretMotor.setPower(-0.3); }
+    public void turretTurnRight() { turretMotor.setPower(0.3); }
+    public void turretStop() { turretMotor.setPower(0.0); }
+    
+    /**
+     * Set turret power with proportional control
+     * @param power Power value between -1.0 and 1.0
+     */
+    public void turretSetPower(double power) {
+        turretMotor.setPower(power);
+    }
+    
+    /**
+     * Get turret position in degrees relative to robot
+     * Uses encoder if available, otherwise returns 0
+     * @return Turret position in degrees (0 = forward relative to robot)
+     */
+    public double getTurretPositionDegrees() {
+        // Gear ratio: 2.5744 motor rotations = 360 turret degrees
+        // Most FTC motors have 28 counts per revolution (REV HD Hex)
+        // Adjust MOTOR_COUNTS_PER_REVOLUTION if using different motor
+        final double MOTOR_COUNTS_PER_REVOLUTION = 28.0;
+        final double TURRET_GEAR_RATIO = 2.5744;
+        final double TURRET_DEGREES_PER_MOTOR_ROTATION = 360.0 / TURRET_GEAR_RATIO;
+        final double TURRET_DEGREES_PER_ENCODER_TICK = TURRET_DEGREES_PER_MOTOR_ROTATION / MOTOR_COUNTS_PER_REVOLUTION;
+        
+        int encoderTicks = turretMotor.getCurrentPosition();
+        return encoderTicks * TURRET_DEGREES_PER_ENCODER_TICK;
+    }
+    
+    /**
+     * Get robot heading (yaw) from IMU in degrees
+     * @return Robot heading in degrees (-180 to 180)
+     */
+    public double getRobotHeading() {
+        if (imu != null) {
+            YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
+            return orientation.getYaw(AngleUnit.DEGREES);
+        }
+        return 0.0;
+    }
 
     private void initIMU() {
         // Retrieve the IMU from the hardware map
