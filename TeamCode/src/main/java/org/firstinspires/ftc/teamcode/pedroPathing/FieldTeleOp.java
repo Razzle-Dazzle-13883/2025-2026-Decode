@@ -58,12 +58,22 @@ public class FieldTeleOp extends OpMode {
     private double lastTurretPower = 0.0; // Last turret power applied (for position estimation)
     private boolean lastLeftBumper = false;
     private double lastLoopTime = 0.0;
-    private double turretP_Gain = 0.01; // Proportional gain for turret control (adjustable with triggers in field-relative mode)
+    // Velocity-based feedforward control (predictive, not reactive)
     private static final double TURRET_MAX_POWER = 0.4; // Maximum turret power
-    private static final double TURRET_DEADBAND = 1.5; // Deadband in degrees (stop if error is less than this)
+    private static final double TURRET_POSITION_CORRECTION_GAIN = 0.01; // Small feedback correction for position error
+    private static final double TURRET_POSITION_DEADBAND = 2.0; // Deadband in degrees (stop correction if error is less than this)
     
-    // Turret gear ratio: 2.5744 motor rotations = 360 turret degrees
-    private static final double TURRET_GEAR_RATIO = 2.5744; // Motor rotations per 360° turret rotation
+    // Turret velocity conversion: need to convert desired turret deg/sec to motor power
+    // This is a calibration value - adjustable with triggers in field-relative mode
+    private double turretDegPerSecPerPower = 50.0; // Approximate: at power=1.0, turret rotates at this many deg/sec
+    private static final double MIN_TURRET_DEG_PER_SEC_PER_POWER = 10.0; // Minimum calibration value
+    private static final double MAX_TURRET_DEG_PER_SEC_PER_POWER = 200.0; // Maximum calibration value
+    private static final double TURRET_CALIBRATION_ADJUSTMENT_RATE = 2.0; // How much to change per trigger press
+    
+    // Turret gear ratio: 121 teeth (turret) / 47 teeth (motor) = 2.5745 motor rotations per 360° turret rotation
+    private static final double TURRET_GEAR_TEETH = 121.0; // Big turret gear teeth
+    private static final double MOTOR_GEAR_TEETH = 47.0; // Motor gear teeth
+    private static final double TURRET_GEAR_RATIO = TURRET_GEAR_TEETH / MOTOR_GEAR_TEETH; // 2.5745 motor rotations per 360° turret rotation
     private static final double TURRET_DEGREES_PER_MOTOR_ROTATION = 360.0 / TURRET_GEAR_RATIO; // ~139.84 degrees per motor rotation
     
     // Motor specs (adjust if using different motor)
@@ -80,9 +90,7 @@ public class FieldTeleOp extends OpMode {
     private static final double ESTIMATED_MOTOR_RPM_AT_MAX_POWER = 150.0; // Adjust based on actual motor performance
     private static final double TURRET_DEGREES_PER_SECOND = (ESTIMATED_MOTOR_RPM_AT_MAX_POWER / 60.0) * TURRET_DEGREES_PER_MOTOR_ROTATION; // Degrees/sec at max power
     
-    private static final double GAIN_ADJUSTMENT_RATE = 0.0005; // How much to change gain per trigger press (5x faster for easier tuning)
-    private static final double MIN_TURRET_P_GAIN = 0.001; // Minimum gain
-    private static final double MAX_TURRET_P_GAIN = 0.1; // Maximum gain
+    // Trigger edge detection for calibration adjustment
     private boolean lastLeftTrigger = false;
     private boolean lastRightTrigger = false;
 
@@ -280,61 +288,66 @@ public class FieldTeleOp extends OpMode {
 
         // Turret control
         if (turretFieldRelativeLocked) {
-            // Field-relative mode: turret counter-rotates to maintain locked field direction
+            // Field-relative mode: Velocity-based feedforward control (predictive, not reactive)
             
-            // Adjust gain with triggers (when in field-relative mode)
+            // Adjust calibration value with triggers (when in field-relative mode)
             boolean currentLeftTrigger = gamepad1.left_trigger > 0.1;
             boolean currentRightTrigger = gamepad1.right_trigger > 0.1;
             
             if (currentLeftTrigger && !lastLeftTrigger) {
-                // Left trigger pressed: decrease gain (less correction)
-                turretP_Gain = Math.max(MIN_TURRET_P_GAIN, turretP_Gain - GAIN_ADJUSTMENT_RATE);
+                // Left trigger pressed: decrease calibration value (less power for same velocity = slower response)
+                turretDegPerSecPerPower = Math.max(MIN_TURRET_DEG_PER_SEC_PER_POWER, turretDegPerSecPerPower - TURRET_CALIBRATION_ADJUSTMENT_RATE);
             }
             if (currentRightTrigger && !lastRightTrigger) {
-                // Right trigger pressed: increase gain (more correction)
-                turretP_Gain = Math.min(MAX_TURRET_P_GAIN, turretP_Gain + GAIN_ADJUSTMENT_RATE);
+                // Right trigger pressed: increase calibration value (more power for same velocity = faster response)
+                turretDegPerSecPerPower = Math.min(MAX_TURRET_DEG_PER_SEC_PER_POWER, turretDegPerSecPerPower + TURRET_CALIBRATION_ADJUSTMENT_RATE);
             }
             lastLeftTrigger = currentLeftTrigger;
             lastRightTrigger = currentRightTrigger;
             
-            // Field-relative control logic
-            double currentRobotHeading = robot.getRobotHeading();
+            // Get robot angular velocity (how fast robot is rotating)
+            double robotAngularVelocity = robot.getRobotAngularVelocity(); // deg/sec
             
-            // Calculate target turret position (relative to robot) to maintain field direction
-            // Target = locked field direction - current robot heading
-            double targetTurretPosition = normalizeAngle(lockedFieldDirection - currentRobotHeading);
+            // Calculate required turret velocity to counteract robot rotation
+            // If robot rotates +X deg/sec, turret must rotate -X deg/sec to maintain field direction
+            double requiredTurretVelocity = -robotAngularVelocity; // deg/sec (negative to counteract)
             
-            // Get current turret position from encoder (more accurate)
+            // Convert turret velocity to motor power
+            // Power = velocity / max_velocity_at_max_power
+            double feedforwardPower = requiredTurretVelocity / turretDegPerSecPerPower;
+            
+            // Get current turret position from encoder
             double currentTurretPosition = robot.getTurretPositionDegrees();
-            
-            // Use encoder position if available, otherwise update estimate from last power
             if (Math.abs(currentTurretPosition) > 0.1 || Math.abs(turretPositionEstimate) < 0.1) {
-                // Encoder is available or estimate is near zero, use encoder
                 turretPositionEstimate = currentTurretPosition;
-            } else {
-                // Encoder not available, update estimate based on last power and time
-                // Using gear ratio: degrees = power * (motor_rpm/60) * degrees_per_motor_rot * time
-                double motorRotationsPerSecond = (lastTurretPower / TURRET_MAX_POWER) * (ESTIMATED_MOTOR_RPM_AT_MAX_POWER / 60.0);
-                turretPositionEstimate += motorRotationsPerSecond * TURRET_DEGREES_PER_MOTOR_ROTATION * deltaTime;
-                turretPositionEstimate = normalizeAngle(turretPositionEstimate);
             }
             
-            // Calculate error between current and target turret position
-            double turretError = normalizeAngle(targetTurretPosition - turretPositionEstimate);
+            // Small feedback correction for position error (fine-tuning)
+            double currentRobotHeading = robot.getRobotHeading();
+            double targetTurretPosition = normalizeAngle(lockedFieldDirection - currentRobotHeading);
+            double positionError = normalizeAngle(targetTurretPosition - turretPositionEstimate);
             
-            // Use proportional control to move turret
-            double turretPower = turretError * turretP_Gain;
+            // Only apply feedback correction if error is significant
+            double feedbackPower = 0.0;
+            if (Math.abs(positionError) > TURRET_POSITION_DEADBAND) {
+                feedbackPower = positionError * TURRET_POSITION_CORRECTION_GAIN;
+            }
             
-            // Apply deadband and limit power
-            if (Math.abs(turretError) < TURRET_DEADBAND) {
+            // Combine feedforward (predictive) and feedback (corrective) terms
+            double turretPower = feedforwardPower + feedbackPower;
+            
+            // Limit power to max
+            turretPower = Math.max(-TURRET_MAX_POWER, Math.min(TURRET_MAX_POWER, turretPower));
+            
+            // Apply power to turret
+            if (Math.abs(turretPower) < 0.01) {
                 robot.turretStop();
                 turretPower = 0.0;
             } else {
-                turretPower = Math.max(-TURRET_MAX_POWER, Math.min(TURRET_MAX_POWER, turretPower));
                 robot.turretSetPower(turretPower);
             }
             
-            // Store power for next loop's position estimation
+            // Update position estimate for next loop
             lastTurretPower = turretPower;
         } else {
             // Manual mode: turret control with left and right triggers
@@ -462,16 +475,19 @@ public class FieldTeleOp extends OpMode {
         // Display turret info on Driver Station telemetry
         if (turretFieldRelativeLocked) {
             // Display on Panels telemetry
-            telemetryM.debug("=== TURRET GAIN (TUNE THIS) ===", String.format("%.5f", turretP_Gain));
+            telemetryM.debug("=== TURRET CALIBRATION (TUNE THIS) ===", String.format("%.1f", turretDegPerSecPerPower));
             telemetryM.debug("LT: Decrease | RT: Increase", "");
+            telemetryM.debug("Robot Angular Vel", String.format("%.1f deg/s", robot.getRobotAngularVelocity()));
             
             // Display on Driver Station telemetry (standard FTC telemetry)
             telemetry.addLine("=== TURRET FIELD-RELATIVE MODE ===");
-            telemetry.addData("Current Gain", "%.5f", turretP_Gain);
+            telemetry.addLine("=== CALIBRATION VALUE (TUNE THIS) ===");
+            telemetry.addData("Deg/Sec Per Power", "%.1f", turretDegPerSecPerPower);
             telemetry.addData("Robot Heading", "%.1f deg", robot.getRobotHeading());
+            telemetry.addData("Robot Angular Vel", "%.1f deg/s", robot.getRobotAngularVelocity());
             telemetry.addData("Locked Field Dir", "%.1f deg", lockedFieldDirection);
             telemetry.addData("Turret Position", "%.1f deg", turretPositionEstimate);
-            telemetry.addLine("LT: Decrease Gain | RT: Increase Gain");
+            telemetry.addLine("LT: Decrease | RT: Increase");
         }
         
         // Update standard telemetry for Driver Station

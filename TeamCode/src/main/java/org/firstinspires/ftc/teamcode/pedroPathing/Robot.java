@@ -11,6 +11,7 @@ import com.qualcomm.robotcore.hardware.IMU;
 import com.qualcomm.hardware.rev.RevHubOrientationOnRobot;
 
 import org.firstinspires.ftc.robotcore.external.navigation.AngleUnit;
+import org.firstinspires.ftc.robotcore.external.navigation.AngularVelocity;
 import org.firstinspires.ftc.robotcore.external.navigation.CurrentUnit;
 import org.firstinspires.ftc.robotcore.external.navigation.YawPitchRollAngles;
 
@@ -224,13 +225,15 @@ public class Robot {
      * @return Turret position in degrees (0 = forward relative to robot)
      */
     public double getTurretPositionDegrees() {
-        // Gear ratio: 2.5744 motor rotations = 360 turret degrees
+        // Gear ratio: 121 teeth (turret) / 47 teeth (motor) = 2.5745 motor rotations per 360° turret rotation
         // Most FTC motors have 28 counts per revolution (REV HD Hex)
         // Adjust MOTOR_COUNTS_PER_REVOLUTION if using different motor
         final double MOTOR_COUNTS_PER_REVOLUTION = 28.0;
-        final double TURRET_GEAR_RATIO = 2.5744;
-        final double TURRET_DEGREES_PER_MOTOR_ROTATION = 360.0 / TURRET_GEAR_RATIO;
-        final double TURRET_DEGREES_PER_ENCODER_TICK = TURRET_DEGREES_PER_MOTOR_ROTATION / MOTOR_COUNTS_PER_REVOLUTION;
+        final double TURRET_GEAR_TEETH = 121.0;
+        final double MOTOR_GEAR_TEETH = 47.0;
+        final double TURRET_GEAR_RATIO = TURRET_GEAR_TEETH / MOTOR_GEAR_TEETH; // 2.5745
+        final double TURRET_DEGREES_PER_MOTOR_ROTATION = 360.0 / TURRET_GEAR_RATIO; // ~139.84 degrees
+        final double TURRET_DEGREES_PER_ENCODER_TICK = TURRET_DEGREES_PER_MOTOR_ROTATION / MOTOR_COUNTS_PER_REVOLUTION; // ~4.994 degrees per tick
         
         int encoderTicks = turretMotor.getCurrentPosition();
         return encoderTicks * TURRET_DEGREES_PER_ENCODER_TICK;
@@ -244,6 +247,17 @@ public class Robot {
         if (imu != null) {
             YawPitchRollAngles orientation = imu.getRobotYawPitchRollAngles();
             return orientation.getYaw(AngleUnit.DEGREES);
+        }
+        return 0.0;
+    }
+    
+    /**
+     * Get robot angular velocity (rotation rate) in degrees per second
+     * @return Robot yaw rotation rate in degrees/second (positive = counter-clockwise)
+     */
+    public double getRobotAngularVelocity() {
+        if (imu != null) {
+            return imu.getRobotAngularVelocity(AngleUnit.DEGREES).zRotationRate;
         }
         return 0.0;
     }
