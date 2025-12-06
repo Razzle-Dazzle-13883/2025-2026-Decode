@@ -80,7 +80,7 @@ public class FieldTeleOp extends OpMode {
     private static final double ESTIMATED_MOTOR_RPM_AT_MAX_POWER = 150.0; // Adjust based on actual motor performance
     private static final double TURRET_DEGREES_PER_SECOND = (ESTIMATED_MOTOR_RPM_AT_MAX_POWER / 60.0) * TURRET_DEGREES_PER_MOTOR_ROTATION; // Degrees/sec at max power
     
-    private static final double GAIN_ADJUSTMENT_RATE = 0.001; // How much to change gain per trigger press
+    private static final double GAIN_ADJUSTMENT_RATE = 0.005; // How much to change gain per trigger press (5x faster for easier tuning)
     private static final double MIN_TURRET_P_GAIN = 0.001; // Minimum gain
     private static final double MAX_TURRET_P_GAIN = 0.1; // Maximum gain
     private boolean lastLeftTrigger = false;
