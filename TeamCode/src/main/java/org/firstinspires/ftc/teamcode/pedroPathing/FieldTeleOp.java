@@ -66,7 +66,7 @@ public class FieldTeleOp extends OpMode {
     // Turret velocity conversion: need to convert desired turret deg/sec to motor power
     // This is a calibration value - adjustable with triggers in field-relative mode
     private double turretDegPerSecPerPower = 50.0; // Approximate: at power=1.0, turret rotates at this many deg/sec
-    private static final double MIN_TURRET_DEG_PER_SEC_PER_POWER = 10.0; // Minimum calibration value
+    private static final double MIN_TURRET_DEG_PER_SEC_PER_POWER = 0.0; // Minimum calibration value
     private static final double MAX_TURRET_DEG_PER_SEC_PER_POWER = 200.0; // Maximum calibration value
     private static final double TURRET_CALIBRATION_ADJUSTMENT_RATE = 2.0; // How much to change per trigger press
     
