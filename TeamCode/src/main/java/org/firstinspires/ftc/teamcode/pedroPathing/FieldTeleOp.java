@@ -37,6 +37,7 @@ public class FieldTeleOp extends OpMode {
     private double maxPowerDelay = 0.3; // Time in seconds to hold full stick before reaching max power
     private double timeAtMaxInput = 0.0; // Time spent at maximum input
     private double currentMaxAllowedRate = 0.0; // Current maximum allowed turn rate
+    private double smoothTurnRate = 0.0; // Current smoothed turn rate (accessible throughout loop)
     
     
     // B button sequence state machine
@@ -51,6 +52,15 @@ public class FieldTeleOp extends OpMode {
     // Edge detection for dpad buttons
     private boolean lastDpadUp = false;
     private boolean lastDpadDown = false;
+    private boolean lastDpadLeft = false;
+    
+    // Turret control modes
+    private enum TurretMode {
+        MANUAL,           // Manual trigger control
+        FIELD_RELATIVE,   // Field-relative lock mode
+        APRILTAG          // AprilTag following mode
+    }
+    private TurretMode turretMode = TurretMode.MANUAL;
     
     // Field-relative turret control
     private boolean turretFieldRelativeLocked = false;
@@ -59,10 +69,20 @@ public class FieldTeleOp extends OpMode {
     private double lastTurretPower = 0.0; // Last turret power applied (for position estimation)
     private boolean lastLeftBumper = false;
     private double lastLoopTime = 0.0;
-    // Velocity-based feedforward control (predictive, not reactive)
+    // Actual-movement-based control: Only uses actual robot movement, prediction only for smoothing
     private static final double TURRET_MAX_POWER = 0.4; // Maximum turret power
-    private static final double TURRET_POSITION_CORRECTION_GAIN = 0.01; // Small feedback correction for position error
-    private static final double TURRET_POSITION_DEADBAND = 2.0; // Deadband in degrees (stop correction if error is less than this)
+    private static final double POWER_SMOOTHING_ALPHA = 0.3; // Smoothing factor for power output (0.0-1.0, lower = smoother)
+    private static final double IMU_VELOCITY_FILTER_ALPHA = 0.5; // Low-pass filter for IMU angular velocity (0.0-1.0, lower = more filtering)
+    private static final double MIN_ACTUAL_VELOCITY_THRESHOLD = 2.0; // Only move turret if actual velocity is above this (deg/sec)
+    private static final double PREDICTION_SMOOTHING_ALPHA = 0.2; // How much to blend prediction when actual movement exists (0.0-1.0)
+    
+    // Robot angular velocity calibration: Maximum robot turn rate at full joystick input
+    // This converts smoothTurnRate (-1.0 to 1.0) to predicted angular velocity (deg/sec)
+    // Only used for smoothing when actual movement is happening
+    private double maxRobotAngularVelocity = 180.0; // deg/sec at full turn input (adjustable with triggers)
+    private static final double MIN_MAX_ROBOT_ANGULAR_VELOCITY = 50.0; // Minimum calibration value
+    private static final double MAX_MAX_ROBOT_ANGULAR_VELOCITY = 360.0; // Maximum calibration value
+    private static final double ROBOT_ANGULAR_VELOCITY_ADJUSTMENT_RATE = 10.0; // How much to change per trigger press
     
     // Turret velocity conversion: need to convert desired turret deg/sec to motor power
     // This is a calibration value - adjustable with triggers in field-relative mode
@@ -70,6 +90,10 @@ public class FieldTeleOp extends OpMode {
     private static final double MIN_TURRET_DEG_PER_SEC_PER_POWER = 0.0; // Minimum calibration value
     private static final double MAX_TURRET_DEG_PER_SEC_PER_POWER = 200.0; // Maximum calibration value
     private static final double TURRET_CALIBRATION_ADJUSTMENT_RATE = 2.0; // How much to change per trigger press
+    
+    // Filtered values for smooth control
+    private double filteredActualAngularVelocity = 0.0; // Filtered IMU angular velocity
+    private double smoothedTurretPower = 0.0; // Smoothed power output
     
     // Turret gear ratio: 121 teeth (turret) / 47 teeth (motor) = 2.5745 motor rotations per 360° turret rotation
     private static final double TURRET_GEAR_TEETH = 121.0; // Big turret gear teeth
@@ -193,7 +217,7 @@ public class FieldTeleOp extends OpMode {
             //In case the drivers want to use a "slowMode" you can scale the vectors
 
             // Apply smooth turning to the right stick input
-            double smoothTurnRate = applySmoothTurning(-gamepad1.right_stick_x);
+            smoothTurnRate = applySmoothTurning(-gamepad1.right_stick_x);
             
             //This is the normal version to use in the TeleOp
             if (!slowMode) follower.setTeleOpDrive(
@@ -270,89 +294,125 @@ public class FieldTeleOp extends OpMode {
         lastLoopTime = currentTime;
         if (deltaTime <= 0) deltaTime = 0.02; // Default to ~50Hz if time hasn't updated
         
-        // Field-relative turret lock/unlock with left bumper
+        // Turret mode switching logic
+        // Left Dpad: Toggle AprilTag mode on/off
+        if (gamepad1.dpad_left && !lastDpadLeft) {
+            if (turretMode == TurretMode.APRILTAG) {
+                // Turn off AprilTag mode, go back to manual
+                turretMode = TurretMode.MANUAL;
+                turretFieldRelativeLocked = false;
+            } else {
+                // Turn on AprilTag mode
+                turretMode = TurretMode.APRILTAG;
+                turretFieldRelativeLocked = false;
+            }
+        }
+        lastDpadLeft = gamepad1.dpad_left;
+        
+        // Left Bumper: Mode switching
         if (gamepad1.left_bumper && !lastLeftBumper) {
-            // Toggle field-relative mode
-            turretFieldRelativeLocked = !turretFieldRelativeLocked;
-            if (turretFieldRelativeLocked) {
-                // Lock current field-relative direction
-                // Use encoder position if available, otherwise use estimate
+            if (turretMode == TurretMode.APRILTAG) {
+                // From AprilTag mode: switch to field-relative mode
+                turretMode = TurretMode.FIELD_RELATIVE;
+                turretFieldRelativeLocked = true;
+                // Lock current field-relative direction using odometry
                 double currentTurretPosition = robot.getTurretPositionDegrees();
-                if (Math.abs(currentTurretPosition) > 0.1) {
-                    // Encoder is available and has meaningful value
-                    turretPositionEstimate = currentTurretPosition;
-                }
-                // Field direction = robot heading + turret position (relative to robot)
-                double currentRobotHeading = robot.getRobotHeading();
+                turretPositionEstimate = currentTurretPosition;
+                // Use odometry heading (more accurate)
+                double currentRobotHeading = Math.toDegrees(follower.getPose().getHeading());
                 lockedFieldDirection = normalizeAngle(currentRobotHeading + turretPositionEstimate);
+                // Reset smoothed power
+                smoothedTurretPower = 0.0;
+            } else if (turretMode == TurretMode.FIELD_RELATIVE) {
+                // From field-relative mode: switch to manual mode
+                turretMode = TurretMode.MANUAL;
+                turretFieldRelativeLocked = false;
+            } else {
+                // From manual mode: switch to field-relative mode
+                turretMode = TurretMode.FIELD_RELATIVE;
+                turretFieldRelativeLocked = true;
+                // Lock current field-relative direction using odometry
+                double currentTurretPosition = robot.getTurretPositionDegrees();
+                turretPositionEstimate = currentTurretPosition;
+                // Use odometry heading (more accurate)
+                double currentRobotHeading = Math.toDegrees(follower.getPose().getHeading());
+                lockedFieldDirection = normalizeAngle(currentRobotHeading + turretPositionEstimate);
+                // Reset smoothed power
+                smoothedTurretPower = 0.0;
             }
         }
         lastLeftBumper = gamepad1.left_bumper;
 
-        // Turret control
-        if (turretFieldRelativeLocked) {
-            // Field-relative mode: Velocity-based feedforward control (predictive, not reactive)
+        // Turret control - only run if not in AprilTag mode
+        if (turretMode == TurretMode.FIELD_RELATIVE) {
+            // Hybrid control: Combines controller prediction with actual robot movement for precision
             
-            // Adjust calibration value with triggers (when in field-relative mode)
+            // Adjust calibration values with triggers (when in field-relative mode)
             boolean currentLeftTrigger = gamepad1.left_trigger > 0.1;
             boolean currentRightTrigger = gamepad1.right_trigger > 0.1;
             
             if (currentLeftTrigger && !lastLeftTrigger) {
-                // Left trigger pressed: decrease calibration value (less power for same velocity = slower response)
-                turretDegPerSecPerPower = Math.max(MIN_TURRET_DEG_PER_SEC_PER_POWER, turretDegPerSecPerPower - TURRET_CALIBRATION_ADJUSTMENT_RATE);
+                // Left trigger: decrease robot max angular velocity (less aggressive prediction)
+                maxRobotAngularVelocity = Math.max(MIN_MAX_ROBOT_ANGULAR_VELOCITY, maxRobotAngularVelocity - ROBOT_ANGULAR_VELOCITY_ADJUSTMENT_RATE);
             }
             if (currentRightTrigger && !lastRightTrigger) {
-                // Right trigger pressed: increase calibration value (more power for same velocity = faster response)
-                turretDegPerSecPerPower = Math.min(MAX_TURRET_DEG_PER_SEC_PER_POWER, turretDegPerSecPerPower + TURRET_CALIBRATION_ADJUSTMENT_RATE);
+                // Right trigger: increase robot max angular velocity (more aggressive prediction)
+                maxRobotAngularVelocity = Math.min(MAX_MAX_ROBOT_ANGULAR_VELOCITY, maxRobotAngularVelocity + ROBOT_ANGULAR_VELOCITY_ADJUSTMENT_RATE);
             }
             lastLeftTrigger = currentLeftTrigger;
             lastRightTrigger = currentRightTrigger;
             
-            // Get robot angular velocity (how fast robot is rotating)
-            double robotAngularVelocity = robot.getRobotAngularVelocity(); // deg/sec
+            // Get ACTUAL robot angular velocity from IMU (PRIMARY SOURCE - what's really happening)
+            double rawActualAngularVelocity = robot.getRobotAngularVelocity(); // deg/sec
+            
+            // Apply low-pass filter to actual velocity to reduce noise
+            filteredActualAngularVelocity = filteredActualAngularVelocity * (1.0 - IMU_VELOCITY_FILTER_ALPHA) + rawActualAngularVelocity * IMU_VELOCITY_FILTER_ALPHA;
+            
+            // ONLY use actual movement - don't use prediction if robot isn't actually moving!
+            // This prevents turret from moving when joystick is moved but robot doesn't turn
+            double finalAngularVelocity = 0.0;
+            
+            if (Math.abs(filteredActualAngularVelocity) > MIN_ACTUAL_VELOCITY_THRESHOLD) {
+                // Robot is actually moving - use actual velocity as primary source
+                // Optionally blend in a small amount of prediction for smoother response
+                double predictedRobotAngularVelocity = smoothTurnRate * maxRobotAngularVelocity; // deg/sec
+                
+                // Blend: 80% actual, 20% prediction (prediction only helps smooth the response)
+                finalAngularVelocity = filteredActualAngularVelocity * (1.0 - PREDICTION_SMOOTHING_ALPHA) + predictedRobotAngularVelocity * PREDICTION_SMOOTHING_ALPHA;
+            } else {
+                // Robot is NOT moving (or moving very slowly) - don't move turret at all
+                // This prevents turret from moving when joystick is moved but exponential curve prevents robot from turning
+                finalAngularVelocity = 0.0;
+            }
             
             // Calculate required turret velocity to counteract robot rotation
             // If robot rotates +X deg/sec, turret must rotate -X deg/sec to maintain field direction
-            double requiredTurretVelocity = -robotAngularVelocity; // deg/sec (negative to counteract)
+            double requiredTurretVelocity = -finalAngularVelocity; // deg/sec (negative to counteract)
             
             // Convert turret velocity to motor power
-            // Power = velocity / max_velocity_at_max_power
-            double feedforwardPower = requiredTurretVelocity / turretDegPerSecPerPower;
-            
-            // Get current turret position from encoder
-            double currentTurretPosition = robot.getTurretPositionDegrees();
-            if (Math.abs(currentTurretPosition) > 0.1 || Math.abs(turretPositionEstimate) < 0.1) {
-                turretPositionEstimate = currentTurretPosition;
+            double turretPower = 0.0;
+            if (Math.abs(requiredTurretVelocity) > 0.2) { // Small deadband to prevent jitter
+                turretPower = requiredTurretVelocity / turretDegPerSecPerPower;
             }
-            
-            // Small feedback correction for position error (fine-tuning)
-            double currentRobotHeading = robot.getRobotHeading();
-            double targetTurretPosition = normalizeAngle(lockedFieldDirection - currentRobotHeading);
-            double positionError = normalizeAngle(targetTurretPosition - turretPositionEstimate);
-            
-            // Only apply feedback correction if error is significant
-            double feedbackPower = 0.0;
-            if (Math.abs(positionError) > TURRET_POSITION_DEADBAND) {
-                feedbackPower = positionError * TURRET_POSITION_CORRECTION_GAIN;
-            }
-            
-            // Combine feedforward (predictive) and feedback (corrective) terms
-            double turretPower = feedforwardPower + feedbackPower;
             
             // Limit power to max
             turretPower = Math.max(-TURRET_MAX_POWER, Math.min(TURRET_MAX_POWER, turretPower));
             
-            // Apply power to turret
-            if (Math.abs(turretPower) < 0.01) {
+            // Apply exponential smoothing to power output for smooth movement
+            smoothedTurretPower = smoothedTurretPower * (1.0 - POWER_SMOOTHING_ALPHA) + turretPower * POWER_SMOOTHING_ALPHA;
+            
+            // Apply deadband to smoothed power
+            if (Math.abs(smoothedTurretPower) < 0.01) {
                 robot.turretStop();
-                turretPower = 0.0;
+                smoothedTurretPower = 0.0;
             } else {
-                robot.turretSetPower(turretPower);
+                robot.turretSetPower(smoothedTurretPower);
             }
             
-            // Update position estimate for next loop
-            lastTurretPower = turretPower;
-        } else {
+            // Update turret position estimate from encoder for telemetry
+            turretPositionEstimate = robot.getTurretPositionDegrees();
+            lastTurretPower = smoothedTurretPower;
+        } else if (turretMode == TurretMode.MANUAL) {
             // Manual mode: turret control with left and right triggers
             double manualTurretPower = 0.0;
             if (gamepad1.left_trigger > 0.1) {
@@ -388,6 +448,7 @@ public class FieldTeleOp extends OpMode {
             telemetry.addData("Turret Power", "%.2f", manualTurretPower);
             telemetry.addData("Turret Position", "%.1f deg", turretPositionEstimate);
         }
+        // Note: AprilTag mode is handled separately via turret.followTag() call
 
         // State machine for A button sequence (originally was for B button)
         switch (sequenceState) {
@@ -467,33 +528,73 @@ public class FieldTeleOp extends OpMode {
         telemetryM.debug("velocity", follower.getVelocity());
         telemetryM.debug("automatedDrive", automatedDrive);
         telemetryM.debug("rawTurnInput", -gamepad1.right_stick_x);
-        telemetryM.debug("smoothTurnRate", currentTurnRate);
+        telemetryM.debug("smoothTurnRate", smoothTurnRate);
         telemetryM.debug("timeAtMaxInput", timeAtMaxInput);
         telemetryM.debug("maxAllowedRate", currentMaxAllowedRate);
+        telemetryM.debug("turretMode", turretMode.toString());
         telemetryM.debug("turretFieldLocked", turretFieldRelativeLocked);
-        telemetryM.debug("robotHeading", robot.getRobotHeading());
+        telemetryM.debug("robotHeading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryM.debug("lockedFieldDir", lockedFieldDirection);
         telemetryM.debug("turretPosEst", turretPositionEstimate);
         
         // Display turret info on Driver Station telemetry
-        if (turretFieldRelativeLocked) {
+        if (turretMode == TurretMode.FIELD_RELATIVE) {
+            // Calculate values for display
+            double predictedRobotAngularVelocity = smoothTurnRate * maxRobotAngularVelocity;
+            double finalAngularVelocity;
+            if (Math.abs(filteredActualAngularVelocity) > MIN_ACTUAL_VELOCITY_THRESHOLD) {
+                finalAngularVelocity = filteredActualAngularVelocity * (1.0 - PREDICTION_SMOOTHING_ALPHA) + predictedRobotAngularVelocity * PREDICTION_SMOOTHING_ALPHA;
+            } else {
+                finalAngularVelocity = 0.0;
+            }
+            double requiredTurretVelocity = -finalAngularVelocity;
+            
             // Display on Panels telemetry
-            telemetryM.debug("=== TURRET CALIBRATION (TUNE THIS) ===", String.format("%.1f", turretDegPerSecPerPower));
+            telemetryM.debug("=== TURRET CALIBRATION (TUNE THIS) ===", String.format("%.1f", maxRobotAngularVelocity));
             telemetryM.debug("LT: Decrease | RT: Increase", "");
-            telemetryM.debug("Robot Angular Vel", String.format("%.1f deg/s", robot.getRobotAngularVelocity()));
+            telemetryM.debug("Final Robot Vel", String.format("%.1f deg/s", finalAngularVelocity));
             
             // Display on Driver Station telemetry (standard FTC telemetry)
-            telemetry.addLine("=== TURRET FIELD-RELATIVE MODE ===");
-            telemetry.addLine("=== CALIBRATION VALUE (TUNE THIS) ===");
-            telemetry.addData("Deg/Sec Per Power", "%.1f", turretDegPerSecPerPower);
-            telemetry.addData("Robot Heading", "%.1f deg", robot.getRobotHeading());
-            telemetry.addData("Robot Angular Vel", "%.1f deg/s", robot.getRobotAngularVelocity());
+            telemetry.addLine("=== TURRET FIELD-RELATIVE MODE (ACTUAL MOVEMENT ONLY) ===");
+            telemetry.addLine("=== CALIBRATION VALUES (TUNE WITH TRIGGERS) ===");
+            telemetry.addData("Max Robot Angular Vel", "%.1f deg/s", maxRobotAngularVelocity);
+            telemetry.addData("Turret Deg/Sec Per Power", "%.1f", turretDegPerSecPerPower);
+            telemetry.addLine("");
+            telemetry.addLine("=== CONTROL VALUES ===");
+            telemetry.addData("Smooth Turn Rate", "%.3f", smoothTurnRate);
+            telemetry.addData("Predicted Robot Vel", "%.2f deg/s", predictedRobotAngularVelocity);
+            telemetry.addData("Actual Robot Vel (IMU)", "%.2f deg/s", filteredActualAngularVelocity);
+            telemetry.addData("Min Velocity Threshold", "%.1f deg/s", MIN_ACTUAL_VELOCITY_THRESHOLD);
+            if (Math.abs(filteredActualAngularVelocity) > MIN_ACTUAL_VELOCITY_THRESHOLD) {
+                telemetry.addData("Status", "ACTIVE - Robot moving");
+            } else {
+                telemetry.addData("Status", "INACTIVE - Robot not moving");
+            }
+            telemetry.addData("Final Robot Vel", "%.2f deg/s", finalAngularVelocity);
+            telemetry.addData("Required Turret Vel", "%.2f deg/s", requiredTurretVelocity);
+            telemetry.addData("Turret Power", "%.3f", smoothedTurretPower);
+            telemetry.addLine("");
+            telemetry.addLine("=== CURRENT STATE ===");
+            telemetry.addData("Robot Heading", "%.1f deg", Math.toDegrees(follower.getPose().getHeading()));
             telemetry.addData("Locked Field Dir", "%.1f deg", lockedFieldDirection);
             telemetry.addData("Turret Position", "%.1f deg", turretPositionEstimate);
-            telemetry.addLine("LT: Decrease | RT: Increase");
+            telemetry.addLine("LT: Decrease Max Vel | RT: Increase Max Vel");
+        } else if (turretMode == TurretMode.MANUAL) {
+            // Display manual mode info
+            telemetry.addLine("=== TURRET MODE: MANUAL ===");
+            telemetry.addLine("Left Bumper: Field-Relative Mode");
+            telemetry.addLine("Left Dpad: AprilTag Mode");
+        } else if (turretMode == TurretMode.APRILTAG) {
+            // Display AprilTag mode info
+            telemetry.addLine("=== TURRET MODE: APRILTAG ===");
+            telemetry.addLine("Left Bumper: Switch to Field-Relative");
+            telemetry.addLine("Left Dpad: Switch to Manual");
         }
 
-        turret.followTag();
+        // Only run AprilTag control when in AprilTag mode
+        if (turretMode == TurretMode.APRILTAG) {
+            turret.followTag();
+        }
 
         // Update standard telemetry for Driver Station
         telemetry.update();

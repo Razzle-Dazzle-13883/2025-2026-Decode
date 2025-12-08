@@ -40,8 +40,8 @@ public class Robot {
      */
 
     // double kickerPos;
-    final double KICKERUP = 0.5;
-    final double KICKERDOWN = 0.15;
+    final double KICKERUP = 0.9;
+    final double KICKERDOWN = 0.64;
 
     double intakeSpeed;
     final double INTAKERUN = -0.4;
@@ -207,8 +207,8 @@ public class Robot {
         rightShooterMotor.setPower(SHOOTERREVERSE);
     }
 
-    public void turretTurnLeft() { turretMotor.setPower(-0.5); }
-    public void turretTurnRight() { turretMotor.setPower(0.5); }
+    public void turretTurnLeft() { turretMotor.setPower(-0.3); }
+    public void turretTurnRight() { turretMotor.setPower(0.3); }
     public void turretStop() { turretMotor.setPower(0.0); }
     
     /**
