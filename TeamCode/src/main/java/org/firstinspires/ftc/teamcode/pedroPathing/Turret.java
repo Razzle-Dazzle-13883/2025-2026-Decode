@@ -1,7 +1,6 @@
 package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.qualcomm.robotcore.eventloop.opmode.OpMode;
-import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
 import com.qualcomm.robotcore.hardware.DcMotor;
 import com.qualcomm.robotcore.util.Range;
 
@@ -12,8 +11,7 @@ import org.firstinspires.ftc.robotcore.external.hardware.camera.WebcamName;
 
 import java.util.List;
 
-@Autonomous(name = "AprilTagCenterAuto", group = "Turret")
-public class AprilTagCenterAuto extends OpMode {
+public class Turret {
 
     private static final int TARGET_TAG_ID = 24;
 
@@ -27,18 +25,22 @@ public class AprilTagCenterAuto extends OpMode {
     private boolean tagDetected = false;
 
     // ----------------- CONTROL TUNING -----------
-    private static final double TURN_GAIN = 0.022;
-    private static final double MAX_POWER = 0.55;
+    private static final double TURN_GAIN = 0.045;
+    private static final double MAX_POWER = 0.60;
     private static final double CENTER_THRESHOLD = 1.2;
-    private static final double SMOOTHING = 0.10;
+    private static final double SMOOTHING = 0.08;
 
     private double smoothedPower = 0;
 
-    @Override
-    public void init() {
+    private OpMode myOpMode;
 
+    public Turret(OpMode opMode) {
+        this.myOpMode = opMode;
+    }
+
+    public void init() {
         // turret motor (NO ENCODER)
-        turret = hardwareMap.get(DcMotor.class, "turretMotor");
+        turret = myOpMode.hardwareMap.get(DcMotor.class, "turretMotor");
         turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
@@ -49,22 +51,18 @@ public class AprilTagCenterAuto extends OpMode {
                 .build();
 
         visionPortal = new VisionPortal.Builder()
-                .setCamera(hardwareMap.get(WebcamName.class, "Webcam 1"))
+                .setCamera(myOpMode.hardwareMap.get(WebcamName.class, "Webcam 1"))
                 .addProcessor(aprilTag)
                 .build();
-
-        telemetry.addLine("Turret tracker initialized.");
     }
 
-    @Override
-    public void loop() {
-
-        detectTag();
+    public void followTag() {
+        this.detectTag();
 
         if (!tagDetected) {
             turret.setPower(0);
-            telemetry.addLine("Searching for Tag " + TARGET_TAG_ID + "...");
-            telemetry.update();
+            myOpMode.telemetry.addLine("Searching for Tag " + TARGET_TAG_ID + "...");
+            myOpMode.telemetry.update();
             return;
         }
 
@@ -83,12 +81,12 @@ public class AprilTagCenterAuto extends OpMode {
             turret.setPower(smoothedPower);
         }
 
-        telemetry.addData("Tag Detected", tagDetected);
-        telemetry.addData("Tag ID", targetTag.id);
-        telemetry.addData("Yaw Error (deg)", yawError);
-        telemetry.addData("Turret Power", smoothedPower);
-        telemetry.addData("Centered", centered ? "YES" : "NO");
-        telemetry.update();
+        myOpMode.telemetry.addData("Tag Detected", tagDetected);
+        myOpMode.telemetry.addData("Tag ID", targetTag.id);
+        myOpMode.telemetry.addData("Yaw Error (deg)", yawError);
+        myOpMode.telemetry.addData("Turret Power", smoothedPower);
+        myOpMode.telemetry.addData("Centered", centered ? "YES" : "NO");
+        myOpMode.telemetry.update();
     }
 
     private void detectTag() {

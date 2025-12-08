@@ -25,6 +25,7 @@ public class FieldTeleOp extends OpMode {
     private boolean slowMode = false;
     private double slowModeMultiplier = 0.5;
     private Robot robot;
+    private Turret turret;
     
     // Turn control variables for smooth turning
     private double currentTurnRate = 0.0;
@@ -98,6 +99,8 @@ public class FieldTeleOp extends OpMode {
     public void init() {
         robot = new Robot(this);
         robot.initHardware(); // Initialize all hardware components
+        turret = new Turret(this);
+        turret.init();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
@@ -489,7 +492,9 @@ public class FieldTeleOp extends OpMode {
             telemetry.addData("Turret Position", "%.1f deg", turretPositionEstimate);
             telemetry.addLine("LT: Decrease | RT: Increase");
         }
-        
+
+        turret.followTag();
+
         // Update standard telemetry for Driver Station
         telemetry.update();
     }
