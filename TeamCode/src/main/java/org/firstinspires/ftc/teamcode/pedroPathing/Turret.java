@@ -25,10 +25,10 @@ public class Turret {
     private boolean tagDetected = false;
 
     // ----------------- CONTROL TUNING -----------
-    private static final double TURN_GAIN = 0.045;
-    private static final double MAX_POWER = 0.60;
+    private static final double TURN_GAIN = 0.015;
+    private static final double MAX_POWER = 0.25;
     private static final double CENTER_THRESHOLD = 1.2;
-    private static final double SMOOTHING = 0.08;
+    private static final double SMOOTHING = 0.05;
 
     private double smoothedPower = 0;
 
