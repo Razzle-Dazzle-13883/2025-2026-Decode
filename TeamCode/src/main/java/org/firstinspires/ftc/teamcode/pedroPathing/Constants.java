@@ -15,24 +15,24 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-            .forwardZeroPowerAcceleration(-45.991071737652646)
-            .lateralZeroPowerAcceleration(-49.967084904806676)
+           .forwardZeroPowerAcceleration(-45.991071737652646)
+           .lateralZeroPowerAcceleration(-49.967084904806676)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.01, 0))
             .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.02))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025,0,0.00001,0.6,0.01))
             .centripetalScaling(0.0002)
-            .mass(8.35);
+            .mass(9.48);
 
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             // Match hardwareMap names defined in Robot.initHardware()
             .forwardEncoder_HardwareMapName("frontRightMotor")
             .strafeEncoder_HardwareMapName("backRightMotor")
             .forwardPodY(-2)
-            .strafePodX(-5.5)
+            .strafePodX(-7)
             .forwardEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.FORWARD)
-            .forwardTicksToInches(0.00052255)
-            // .strafeTicksToInches(0.004285131)
+            .forwardTicksToInches(0.00053798)
+            .strafeTicksToInches(0.00069787)
             .IMU_HardwareMapName("imu")
             .IMU_Orientation(
                     new RevHubOrientationOnRobot(
@@ -44,8 +44,8 @@ public class Constants {
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
-            .xVelocity(60.55591331430678)
-            .yVelocity(35.1735275041384)
+            .xVelocity(54.4890777)
+            //.yVelocity(25.173275041384)
             // Match hardwareMap names defined in Robot.initHardware()
             .rightFrontMotorName("frontRightMotor")
             .rightRearMotorName("backRightMotor")

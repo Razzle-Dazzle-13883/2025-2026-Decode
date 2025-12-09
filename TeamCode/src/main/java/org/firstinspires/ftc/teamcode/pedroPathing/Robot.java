@@ -40,8 +40,8 @@ public class Robot {
      */
 
     // double kickerPos;
-    final double KICKERUP = 0.9;
-    final double KICKERDOWN = 0.64;
+    final double KICKERUP = 0.75;
+    final double KICKERDOWN = 0.35;
 
     double intakeSpeed;
     final double INTAKERUN = -0.4;
@@ -110,6 +110,10 @@ public class Robot {
         leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        
+        // Configure turret motor encoder
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,

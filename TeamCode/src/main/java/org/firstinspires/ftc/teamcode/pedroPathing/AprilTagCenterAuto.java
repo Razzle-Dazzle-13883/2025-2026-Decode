@@ -68,10 +68,10 @@ public class AprilTagCenterAuto extends OpMode {
             return;
         }
 
-        double yawError = targetTag.ftcPose.yaw;
-        boolean centered = Math.abs(yawError) < CENTER_THRESHOLD;
+        double headingError = targetTag.ftcPose.bearing;
+        boolean centered = Math.abs(headingError) < CENTER_THRESHOLD;
 
-        double desiredPower = yawError * TURN_GAIN;
+        double desiredPower = -headingError * TURN_GAIN;
         desiredPower = Range.clip(desiredPower, -MAX_POWER, MAX_POWER);
 
         smoothedPower =
@@ -85,7 +85,7 @@ public class AprilTagCenterAuto extends OpMode {
 
         telemetry.addData("Tag Detected", tagDetected);
         telemetry.addData("Tag ID", targetTag.id);
-        telemetry.addData("Yaw Error (deg)", yawError);
+        telemetry.addData("Bearing (Error)", headingError);
         telemetry.addData("Turret Power", smoothedPower);
         telemetry.addData("Centered", centered ? "YES" : "NO");
         telemetry.update();
