@@ -133,12 +133,10 @@ public class FieldTeleOp extends OpMode {
         robot = new Robot(this);
         robot.initHardware(); // Initialize all hardware components
         turret = new Turret(this);
-        turret.setRobot(robot); // Pass robot for IMU access
         turret.init();
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
-        turret.setFollower(follower); // Pass follower for odometry access (if needed)
         telemetryM = PanelsTelemetry.INSTANCE.getTelemetry();
 
         pathTimer = new Timer();

@@ -11,7 +11,9 @@ import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 @Autonomous(name = "RedNearAuto", group = "Auto")
 public class RedNearAuto extends OpMode {
+
     private Robot robot;
+    private Turret turret;
 
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
@@ -28,6 +30,7 @@ public class RedNearAuto extends OpMode {
     private int pathState;
     private final Pose startPose = new Pose(119.74082073434126, 126.27213822894169, Math.toRadians(38)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(95.170626349892, 103.56803455723542, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose score1Pose = new Pose(95.170626349892, 103.56803455723542, Math.toRadians(-30)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup1Pose = new Pose(95.170626349892, 83.97408207343412, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose intake1Pose = new Pose(120.05183585313175, 83.66306695464363, Math.toRadians(0)); // Intake (First Set) of Artifacts from the Spike Mark.
     private final Pose pickup2Pose = new Pose(95.48164146868251, 59.40388768898488, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
@@ -58,14 +61,14 @@ public class RedNearAuto extends OpMode {
 
         /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, scorePose))
-                .setLinearHeadingInterpolation(intake1Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(intake1Pose, score1Pose))
+                .setLinearHeadingInterpolation(intake1Pose.getHeading(), score1Pose.getHeading())
                 .build();
 
         /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         grabPickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, pickup2Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup2Pose.getHeading())
+                .addPath(new BezierLine(score1Pose, pickup2Pose))
+                .setLinearHeadingInterpolation(score1Pose.getHeading(), pickup2Pose.getHeading())
                 .build();
 
         intakePickup2 = follower.pathBuilder()
@@ -109,6 +112,20 @@ public class RedNearAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
                     /* Score Preload */
+                    turret.followTag();
+                    robot.shooterOn();
+
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
+                    robot.intakeFast();
+
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 4) {}
+                    robot.shooterOff();
+                    robot.intakeOff();
+                    robot.kickerUp();
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(grabPickup1, true);
@@ -119,7 +136,9 @@ public class RedNearAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy()) {
                     /* Grab Sample */
+                    robot.intakeFast();
 
+                    pathTimer.resetTimer();
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
                     follower.followPath(intakePickup1, true);
                     setPathState(3);
@@ -129,6 +148,15 @@ public class RedNearAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
                     /* Score Sample */
+                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
+                    robot.intakeOff();
+                    robot.kickerDown();
+
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+
+                    pathTimer.resetTimer();
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     follower.followPath(scorePickup1, true);
@@ -139,10 +167,22 @@ public class RedNearAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
                 if (!follower.isBusy()) {
                     /* Grab Sample */
+                    turret.followTag();
+                    robot.shooterOn();
 
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
+                    robot.intakeFast();
+
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 4) {}
+                    robot.shooterOff();
+                    robot.intakeOff();
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(grabPickup2, true);
-                    setPathState(5);
+                    // follower.followPath(grabPickup2, true);
+                    setPathState(-1);
                 }
                 break;
             case 5:
@@ -206,10 +246,15 @@ public class RedNearAuto extends OpMode {
      **/
     @Override
     public void init() {
+        robot = new Robot(this);
+        robot.initHardware();
+
+        turret = new Turret(this);
+        turret.init();
+
         pathTimer = new Timer();
         opmodeTimer = new Timer();
         opmodeTimer.resetTimer();
-
 
         follower = Constants.createFollower(hardwareMap);
         buildPaths();

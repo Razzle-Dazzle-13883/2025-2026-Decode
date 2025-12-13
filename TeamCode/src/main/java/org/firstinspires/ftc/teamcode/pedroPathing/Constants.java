@@ -45,7 +45,7 @@ public class Constants {
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
             .xVelocity(54.4890777)
-            //.yVelocity(25.173275041384)
+            .yVelocity(28.173275041384)
             // Match hardwareMap names defined in Robot.initHardware()
             .rightFrontMotorName("frontRightMotor")
             .rightRearMotorName("backRightMotor")
