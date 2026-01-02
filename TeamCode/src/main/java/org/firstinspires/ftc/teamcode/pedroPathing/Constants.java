@@ -21,14 +21,14 @@ public class Constants {
             .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.02))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025,0,0.00001,0.6,0.01))
             .centripetalScaling(0.0002)
-            .mass(9.48);
+            .mass(9.1);
 
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             // Match hardwareMap names defined in Robot.initHardware()
-            .forwardEncoder_HardwareMapName("frontRightMotor")
-            .strafeEncoder_HardwareMapName("backRightMotor")
-            .forwardPodY(-2)
-            .strafePodX(-7)
+            .forwardEncoder_HardwareMapName("backLeftMotor")
+            .strafeEncoder_HardwareMapName("frontLeftMotor")
+            .forwardPodY(-1.5)
+            .strafePodX(-4.5)
             .forwardEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.FORWARD)
             .forwardTicksToInches(0.00053798)

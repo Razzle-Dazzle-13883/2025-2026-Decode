@@ -49,11 +49,12 @@ public class Turret {
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
                 .setDrawTagOutline(true)
                 .build();
-
+/*
         visionPortal = new VisionPortal.Builder()
                 .setCamera(myOpMode.hardwareMap.get(WebcamName.class, "Webcam 1"))
                 .addProcessor(aprilTag)
                 .build();
+ */
     }
 
     public void followTag() {
