@@ -31,8 +31,8 @@ public class Constants {
             .strafePodX(-4.5)
             .forwardEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.FORWARD)
-            .forwardTicksToInches(0.00053798)
-            .strafeTicksToInches(0.00069787)
+            .forwardTicksToInches(0.000530911)
+            .strafeTicksToInches(0.000527841)
             .IMU_HardwareMapName("imu")
             .IMU_Orientation(
                     new RevHubOrientationOnRobot(
