@@ -313,12 +313,15 @@ public class FieldTeleOp extends OpMode {
         lastDpadDown = gamepad1.dpad_down;
 
         if (gamepad1.a) {
+            robot.intakeShoot();
+            /*
             // Handle A button sequence with state machine (instead of B)
             if (sequenceState == BSequenceState.IDLE) {
                 robot.shooterClose(); // Use close range shooter power (0.64)
                 pathTimer.resetTimer();
                 sequenceState = BSequenceState.SHOOTER_ON_WAIT;
             }
+             */
         }
 
         if (gamepad1.b) {

@@ -41,15 +41,14 @@ public class Robot {
 
     // double kickerPos;
     final double KICKERUP = 0.85;
-    final double KICKERDOWN = 0.45;
+    final double KICKERDOWN = 0.50;
 
     double intakeSpeed;
     final double INTAKERUN = 0.4;
     final double INTAKEREVERSE = -0.4;
-    final double INTAKESHOOTER = 0.6;
+    final double INTAKESHOOTER = 1.0;
     final double INTAKESTOP = 0.0;
     final double INTAKEFAST = 0.7;
-    final double INTAKESLOW = 0.2;
 
     double shooterSpeed;
     final double SHOOTERRUN = 0.8;
@@ -188,7 +187,6 @@ public class Robot {
     }
     public void intakeShoot() {intakeMotor.setPower(INTAKESHOOTER); }
     public void intakeFast() {intakeMotor.setPower(INTAKEFAST); }
-    public void intakeSlow() {intakeMotor.setPower(INTAKESLOW); }
 
     public void kickerUp() { leftKicker.setPosition(KICKERUP);
     }
