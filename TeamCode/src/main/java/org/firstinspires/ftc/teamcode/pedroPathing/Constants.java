@@ -29,7 +29,7 @@ public class Constants {
             .strafeEncoder_HardwareMapName("frontLeftMotor")
             .forwardPodY(-1.5)
             .strafePodX(-4.5)
-            .forwardEncoderDirection(Encoder.FORWARD)
+            .forwardEncoderDirection(Encoder.REVERSE)
             .strafeEncoderDirection(Encoder.FORWARD)
             .forwardTicksToInches(0.000530911)
             .strafeTicksToInches(0.000527841)

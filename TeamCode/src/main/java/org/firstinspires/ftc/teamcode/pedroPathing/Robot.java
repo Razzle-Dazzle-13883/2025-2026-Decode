@@ -41,14 +41,14 @@ public class Robot {
 
     // double kickerPos;
     final double KICKERUP = 0.85;
-    final double KICKERDOWN = 0.55;
+    final double KICKERDOWN = 0.45;
 
     double intakeSpeed;
     final double INTAKERUN = 0.4;
     final double INTAKEREVERSE = -0.4;
     final double INTAKESHOOTER = 0.6;
     final double INTAKESTOP = 0.0;
-    final double INTAKEFAST = 1.0;
+    final double INTAKEFAST = 0.7;
     final double INTAKESLOW = 0.2;
 
     double shooterSpeed;
