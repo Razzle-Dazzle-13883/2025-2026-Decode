@@ -25,11 +25,11 @@ public class Constants {
 
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             // Match hardwareMap names defined in Robot.initHardware()
-            .forwardEncoder_HardwareMapName("backLeftMotor")
+            .forwardEncoder_HardwareMapName("backRightMotor")
             .strafeEncoder_HardwareMapName("frontLeftMotor")
             .forwardPodY(-1.5)
             .strafePodX(-4.5)
-            .forwardEncoderDirection(Encoder.REVERSE)
+            .forwardEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.FORWARD)
             .forwardTicksToInches(0.000530911)
             .strafeTicksToInches(0.000527841)
