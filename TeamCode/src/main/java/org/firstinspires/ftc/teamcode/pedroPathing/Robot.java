@@ -23,7 +23,6 @@ public class Robot {
     DcMotor intakeMotor;
     DcMotor leftShooterMotor;
     DcMotor rightShooterMotor;
-    DcMotor turretMotor;
 
     Servo leftKicker;
     // CRServo rightKicker;
@@ -76,8 +75,6 @@ public class Robot {
         intakeMotor = myOpMode.hardwareMap.dcMotor.get("intakeMotor");
         leftShooterMotor = myOpMode.hardwareMap.dcMotor.get("leftShooterMotor");
         rightShooterMotor = myOpMode.hardwareMap.dcMotor.get("rightShooterMotor");
-        turretMotor = myOpMode.hardwareMap.dcMotor.get("turretMotor");
-
 
         try {
             leftKicker = myOpMode.hardwareMap.get(Servo.class, "leftKicker");
@@ -108,11 +105,6 @@ public class Robot {
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        
-        // Configure turret motor encoder
-        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
-        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -207,38 +199,6 @@ public class Robot {
     public void shooterRev() { 
         leftShooterMotor.setPower(SHOOTERREVERSE);
         rightShooterMotor.setPower(SHOOTERREVERSE);
-    }
-
-    public void turretTurnLeft() { turretMotor.setPower(-0.3); }
-    public void turretTurnRight() { turretMotor.setPower(0.3); }
-    public void turretStop() { turretMotor.setPower(0.0); }
-    
-    /**
-     * Set turret power with proportional control
-     * @param power Power value between -1.0 and 1.0
-     */
-    public void turretSetPower(double power) {
-        turretMotor.setPower(power);
-    }
-    
-    /**
-     * Get turret position in degrees relative to robot
-     * Uses encoder if available, otherwise returns 0
-     * @return Turret position in degrees (0 = forward relative to robot)
-     */
-    public double getTurretPositionDegrees() {
-        // Gear ratio: 121 teeth (turret) / 47 teeth (motor) = 2.5745 motor rotations per 360° turret rotation
-        // Most FTC motors have 28 counts per revolution (REV HD Hex)
-        // Adjust MOTOR_COUNTS_PER_REVOLUTION if using different motor
-        final double MOTOR_COUNTS_PER_REVOLUTION = 28.0;
-        final double TURRET_GEAR_TEETH = 121.0;
-        final double MOTOR_GEAR_TEETH = 47.0;
-        final double TURRET_GEAR_RATIO = TURRET_GEAR_TEETH / MOTOR_GEAR_TEETH; // 2.5745
-        final double TURRET_DEGREES_PER_MOTOR_ROTATION = 360.0 / TURRET_GEAR_RATIO; // ~139.84 degrees
-        final double TURRET_DEGREES_PER_ENCODER_TICK = TURRET_DEGREES_PER_MOTOR_ROTATION / MOTOR_COUNTS_PER_REVOLUTION; // ~4.994 degrees per tick
-        
-        int encoderTicks = turretMotor.getCurrentPosition();
-        return encoderTicks * TURRET_DEGREES_PER_ENCODER_TICK;
     }
     
     /**

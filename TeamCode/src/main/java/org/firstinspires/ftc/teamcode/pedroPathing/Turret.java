@@ -16,7 +16,7 @@ public class Turret {
     private static final int TARGET_TAG_ID = 24;
 
     // ----------------- HARDWARE -----------------
-    private DcMotor turret;
+    private DcMotor turretMotor;
 
     // ----------------- VISION -------------------
     private VisionPortal visionPortal;
@@ -40,9 +40,10 @@ public class Turret {
 
     public void init() {
         // turret motor (NO ENCODER)
-        turret = myOpMode.hardwareMap.get(DcMotor.class, "turretMotor");
-        turret.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        turret.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
+        turretMotor = myOpMode.hardwareMap.get(DcMotor.class, "turretMotor");
+        turretMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+        turretMotor.setMode(DcMotor.RunMode.RUN_WITHOUT_ENCODER);
 
         // Vision setup
         aprilTag = new AprilTagProcessor.Builder()
@@ -61,7 +62,7 @@ public class Turret {
         this.detectTag();
 
         if (!tagDetected) {
-            turret.setPower(0);
+            turretMotor.setPower(0);
             myOpMode.telemetry.addLine("Searching for Tag " + TARGET_TAG_ID + "...");
             myOpMode.telemetry.update();
             return;
@@ -77,9 +78,9 @@ public class Turret {
                 smoothedPower * (1 - SMOOTHING) + desiredPower * SMOOTHING;
 
         if (centered) {
-            turret.setPower(0);
+            turretMotor.setPower(0);
         } else {
-            turret.setPower(smoothedPower);
+            turretMotor.setPower(smoothedPower);
         }
 
         myOpMode.telemetry.addData("Tag Detected", tagDetected);
@@ -90,6 +91,37 @@ public class Turret {
         myOpMode.telemetry.update();
     }
 
+    public void turretTurnLeft() { turretMotor.setPower(-0.3); }
+    public void turretTurnRight() { turretMotor.setPower(0.3); }
+    public void turretStop() { turretMotor.setPower(0.0); }
+
+    /**
+     * Set turret power with proportional control
+     * @param power Power value between -1.0 and 1.0
+     */
+    public void turretSetPower(double power) {
+        turretMotor.setPower(power);
+    }
+
+    /**
+     * Get turret position in degrees relative to robot
+     * Uses encoder if available, otherwise returns 0
+     * @return Turret position in degrees (0 = forward relative to robot)
+     */
+    public double getTurretPositionDegrees() {
+        // Gear ratio: 121 teeth (turret) / 47 teeth (motor) = 2.5745 motor rotations per 360° turret rotation
+        // Most FTC motors have 28 counts per revolution (REV HD Hex)
+        // Adjust MOTOR_COUNTS_PER_REVOLUTION if using different motor
+        final double MOTOR_COUNTS_PER_REVOLUTION = 28.0;
+        final double TURRET_GEAR_TEETH = 121.0;
+        final double MOTOR_GEAR_TEETH = 47.0;
+        final double TURRET_GEAR_RATIO = TURRET_GEAR_TEETH / MOTOR_GEAR_TEETH; // 2.5745
+        final double TURRET_DEGREES_PER_MOTOR_ROTATION = 360.0 / TURRET_GEAR_RATIO; // ~139.84 degrees
+        final double TURRET_DEGREES_PER_ENCODER_TICK = TURRET_DEGREES_PER_MOTOR_ROTATION / MOTOR_COUNTS_PER_REVOLUTION; // ~4.994 degrees per tick
+
+        int encoderTicks = turretMotor.getCurrentPosition();
+        return encoderTicks * TURRET_DEGREES_PER_ENCODER_TICK;
+    }
     private void detectTag() {
         tagDetected = false;
         targetTag = null;

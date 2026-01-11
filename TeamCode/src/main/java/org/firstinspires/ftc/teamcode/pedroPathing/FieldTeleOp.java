@@ -144,7 +144,7 @@ public class FieldTeleOp extends OpMode {
         
         // Initialize turret position from encoder (encoder should be reset in Robot.initHardware())
         // This ensures we start with accurate position tracking
-        turretPositionEstimate = robot.getTurretPositionDegrees();
+        turretPositionEstimate = turret.getTurretPositionDegrees();
         
         // Verify encoder is working (should be 0 or very close to 0 after reset)
         if (Math.abs(turretPositionEstimate) > 5.0) {
@@ -356,7 +356,7 @@ public class FieldTeleOp extends OpMode {
                 turretMode = TurretMode.FIELD_RELATIVE;
                 turretFieldRelativeLocked = true;
                 // Lock current field-relative direction using odometry
-                double currentTurretPosition = robot.getTurretPositionDegrees();
+                double currentTurretPosition = turret.getTurretPositionDegrees();
                 turretPositionEstimate = currentTurretPosition;
                 // Use odometry heading (more accurate)
                 double currentRobotHeading = Math.toDegrees(follower.getPose().getHeading());
@@ -372,7 +372,7 @@ public class FieldTeleOp extends OpMode {
                 turretMode = TurretMode.FIELD_RELATIVE;
                 turretFieldRelativeLocked = true;
                 // Lock current field-relative direction using odometry
-                double currentTurretPosition = robot.getTurretPositionDegrees();
+                double currentTurretPosition = turret.getTurretPositionDegrees();
                 turretPositionEstimate = currentTurretPosition;
                 // Use odometry heading (more accurate)
                 double currentRobotHeading = Math.toDegrees(follower.getPose().getHeading());
@@ -420,7 +420,7 @@ public class FieldTeleOp extends OpMode {
             lastRightTrigger = currentRightTrigger;
             
             // Get ACTUAL turret position from encoder (PRIMARY SOURCE for position - always use encoder)
-            double currentTurretPosition = robot.getTurretPositionDegrees(); // degrees relative to robot (0 = forward)
+            double currentTurretPosition = turret.getTurretPositionDegrees(); // degrees relative to robot (0 = forward)
             turretPositionEstimate = currentTurretPosition; // Always use encoder reading, never estimate
             
             // Get current robot heading from odometry (more accurate than IMU for position)
@@ -494,10 +494,10 @@ public class FieldTeleOp extends OpMode {
             
             // Apply deadband to smoothed power
             if (Math.abs(smoothedTurretPower) < 0.01) {
-                robot.turretStop();
+                turret.turretStop();
                 smoothedTurretPower = 0.0;
             } else {
-                robot.turretSetPower(smoothedTurretPower);
+                turret.turretSetPower(smoothedTurretPower);
             }
             
             lastTurretPower = smoothedTurretPower;
@@ -506,17 +506,17 @@ public class FieldTeleOp extends OpMode {
             double manualTurretPower = 0.0;
             if (gamepad1.left_trigger > 0.1) {
                 manualTurretPower = 0.3;
-                robot.turretTurnRight();
+                turret.turretTurnRight();
             } else if (gamepad1.right_trigger > 0.1) {
                 manualTurretPower = -0.3;
-                robot.turretTurnLeft();
+                turret.turretTurnLeft();
             } else {
-                robot.turretStop();
+                turret.turretStop();
             }
             
             // Update turret position estimate in manual mode
             // Use encoder if available, otherwise estimate based on power
-            double currentTurretPosition = robot.getTurretPositionDegrees();
+            double currentTurretPosition = turret.getTurretPositionDegrees();
             if (Math.abs(currentTurretPosition) > 0.1 || Math.abs(turretPositionEstimate) < 0.1) {
                 // Encoder is available, use it
                 turretPositionEstimate = currentTurretPosition;
