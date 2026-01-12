@@ -34,6 +34,12 @@ public class Turret {
 
     private OpMode myOpMode;
 
+    private static final double TICKS_PER_DEGREE = 384.5 // ticks per rotation per Yellow Jacket 5203 spec
+            * 127.0 / 57.0 // This is the external gear reduction, a 57T pinion gear that drives a 127T hub-mount gear
+            * 1/360.0; // we want ticks per degree, not per rotation
+    private double turretToGoalInDegree = 135.0; // blue 135.0; red 45.0 in Pedro Coordinate system
+    private double turrentAutoTurnPower = 0.5;
+
     public Turret(OpMode opMode) {
         this.myOpMode = opMode;
     }
@@ -121,6 +127,39 @@ public class Turret {
 
         int encoderTicks = turretMotor.getCurrentPosition();
         return encoderTicks * TURRET_DEGREES_PER_ENCODER_TICK;
+    }
+
+    public void setTurretToGoalInDegree(double angleToGoal) {
+        this.turretToGoalInDegree = angleToGoal; // 135.0 or 45.0
+    }
+
+    // reset turret back to start position
+    public void reset() {
+        turretMotor.setTargetPosition(0);
+        turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+        turretMotor.setPower(0);
+        turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
+    }
+
+    public void autoTurn(double robotHeadingInDegree) {
+        myOpMode.telemetry.addData("Current bot heading", robotHeadingInDegree);
+        myOpMode.telemetry.addData("Current turret ticks", turretMotor.getCurrentPosition());
+
+        // when bot facing the goal, turret auto turns; otherwise no turn
+        if (robotHeadingInDegree >= 0.0 && robotHeadingInDegree <= 180.0) {
+            double turnInDegree = this.turretToGoalInDegree - robotHeadingInDegree;
+            int turnInTicks = (int)(turnInDegree * TICKS_PER_DEGREE);
+/*
+            turretMotor.setTargetPosition(turnInTicks);
+            turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
+            turretMotor.setPower(this.turrentAutoTurnPower);
+*/
+            myOpMode.telemetry.addData("Turret turn", turnInDegree);
+            myOpMode.telemetry.addData("Turret ticks", turnInTicks);
+            myOpMode.telemetry.addData("Turret power", turrentAutoTurnPower);
+        }
+
+        myOpMode.telemetry.update();
     }
     private void detectTag() {
         tagDetected = false;
