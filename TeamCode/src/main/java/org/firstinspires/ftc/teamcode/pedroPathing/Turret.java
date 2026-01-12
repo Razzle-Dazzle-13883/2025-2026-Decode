@@ -37,8 +37,8 @@ public class Turret {
     private static final double TICKS_PER_DEGREE = 384.5 // ticks per rotation per Yellow Jacket 5203 spec
             * 127.0 / 57.0 // This is the external gear reduction, a 57T pinion gear that drives a 127T hub-mount gear
             * 1/360.0; // we want ticks per degree, not per rotation
-    private double turretToGoalInDegree = 135.0; // blue 135.0; red 45.0 in Pedro Coordinate system
     private double turrentAutoTurnPower = 0.5;
+    private boolean isRedAlliance = false; // default to Blue
 
     public Turret(OpMode opMode) {
         this.myOpMode = opMode;
@@ -129,10 +129,6 @@ public class Turret {
         return encoderTicks * TURRET_DEGREES_PER_ENCODER_TICK;
     }
 
-    public void setTurretToGoalInDegree(double angleToGoal) {
-        this.turretToGoalInDegree = angleToGoal; // 135.0 or 45.0
-    }
-
     // reset turret back to start position
     public void reset() {
         turretMotor.setTargetPosition(0);
@@ -141,14 +137,39 @@ public class Turret {
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
+    public void setAlliance(boolean isRedAlliance) {
+        this.isRedAlliance = isRedAlliance;
+    }
     public void autoTurn(double robotHeadingInDegree) {
+        double turnInDegree = 0.0;
+        boolean doAutoTurn = false;
+
+        // normalize to [0, 360)
+        double normalizedRobotHeadingInDegree = (robotHeadingInDegree % 360 + 360) % 360;
         myOpMode.telemetry.addData("Current bot heading", robotHeadingInDegree);
+        myOpMode.telemetry.addData("Current bot heading normalized [0,360)", normalizedRobotHeadingInDegree);
         myOpMode.telemetry.addData("Current turret ticks", turretMotor.getCurrentPosition());
 
         // when bot facing the goal, turret auto turns; otherwise no turn
-        if (robotHeadingInDegree >= 0.0 && robotHeadingInDegree <= 180.0) {
-            double turnInDegree = this.turretToGoalInDegree - robotHeadingInDegree;
-            int turnInTicks = (int)(turnInDegree * TICKS_PER_DEGREE);
+        if (isRedAlliance) { // RED GOAL
+            if (normalizedRobotHeadingInDegree >= 0.0 && normalizedRobotHeadingInDegree <= 135.0) {
+                turnInDegree = 45.0 - normalizedRobotHeadingInDegree;
+                doAutoTurn = true;
+            }
+            if (normalizedRobotHeadingInDegree >= 315.0) {
+                turnInDegree = 45.0 - (360.0 - normalizedRobotHeadingInDegree);
+                doAutoTurn = true;
+            }
+        } else { // BLUE GOAL
+            // when bot facing the goal, turret auto turns; otherwise no turn
+            if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 225.0) {
+                turnInDegree = 135.0 - robotHeadingInDegree;
+                doAutoTurn = true;
+            }
+        }
+
+        if (doAutoTurn) {
+            int turnInTicks = (int) (turnInDegree * TICKS_PER_DEGREE);
 /*
             turretMotor.setTargetPosition(turnInTicks);
             turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
@@ -158,7 +179,6 @@ public class Turret {
             myOpMode.telemetry.addData("Turret ticks", turnInTicks);
             myOpMode.telemetry.addData("Turret power", turrentAutoTurnPower);
         }
-
         myOpMode.telemetry.update();
     }
     private void detectTag() {

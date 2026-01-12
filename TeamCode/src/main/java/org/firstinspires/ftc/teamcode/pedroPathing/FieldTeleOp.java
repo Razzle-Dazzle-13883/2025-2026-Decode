@@ -28,6 +28,7 @@ public class FieldTeleOp extends OpMode {
     private boolean lastGuide = false;
     private Robot robot;
     private Turret turret;
+    private boolean isRedAlliance = false; // default to Blue
     
     // Turn control variables for smooth turning
     private double currentTurnRate = 0.0;
@@ -130,10 +131,24 @@ public class FieldTeleOp extends OpMode {
 
     @Override
     public void init() {
+        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");
+        telemetry.addLine("Press Right Bumper for Red, Left Bumper for Blue");
+        telemetry.update();
+
+        if (gamepad1.right_bumper) {
+            isRedAlliance = true;
+        } else if (gamepad1.left_bumper) {
+            isRedAlliance = false;
+        }
+        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");;
+        telemetry.update();
+
         robot = new Robot(this);
         robot.initHardware(); // Initialize all hardware components
         turret = new Turret(this);
         turret.init();
+        turret.setAlliance(isRedAlliance);
+
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
         follower.update();
