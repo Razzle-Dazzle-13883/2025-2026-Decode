@@ -116,7 +116,7 @@ public class Robot {
         leftShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
         rightShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
-        initIMU();
+        // initIMU(); no need as we use Two Wheel + IMU for PR
     }
 
     public void robotMove(double frontLeftPower, double backLeftPower, double frontRightPower, double backRightPower){

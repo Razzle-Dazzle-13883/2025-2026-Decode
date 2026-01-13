@@ -131,23 +131,10 @@ public class FieldTeleOp extends OpMode {
 
     @Override
     public void init() {
-        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");
-        telemetry.addLine("Press Right Bumper for Red, Left Bumper for Blue");
-        telemetry.update();
-
-        if (gamepad1.right_bumper) {
-            isRedAlliance = true;
-        } else if (gamepad1.left_bumper) {
-            isRedAlliance = false;
-        }
-        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");;
-        telemetry.update();
-
         robot = new Robot(this);
         robot.initHardware(); // Initialize all hardware components
         turret = new Turret(this);
         turret.init();
-        turret.setAlliance(isRedAlliance);
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
@@ -175,11 +162,27 @@ public class FieldTeleOp extends OpMode {
     }
 
     @Override
+    public void init_loop() {
+        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");
+        telemetry.addLine("Press Right Bumper for Red, Left Bumper for Blue");
+        telemetry.update();
+
+        if (gamepad1.right_bumper) {
+            isRedAlliance = true;
+        } else if (gamepad1.left_bumper) {
+            isRedAlliance = false;
+        }
+        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");;
+        telemetry.update();
+    }
+
+    @Override
     public void start() {
         //The parameter controls whether the Follower should use break mode on the motors (using it is recommended).
         //In order to use float mode, add .useBrakeModeInTeleOp(true); to your Drivetrain Constants in Constant.java (for Mecanum)
         //If you don't pass anything in, it uses the default (false)
         follower.startTeleopDrive();
+        turret.setAlliance(isRedAlliance);
     }
     
     /**
