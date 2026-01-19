@@ -13,7 +13,9 @@ public class Shooter {
 
     private DcMotorEx leftShooterMotor;
     //private DcMotorEx rightShooterMotor;
-
+    // for PIDFs tuning
+    private static final double F = -49.5;
+    private static final double P = 10.5;
     private OpMode myOpMode;
     public Shooter(OpMode opMode){
         this.myOpMode = opMode;
@@ -32,6 +34,9 @@ public class Shooter {
         // Reverse both shooter motors
         leftShooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
         //rightShooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
+        this.setPIDFCoefficients(pidfCoefficients);
     }
 
     public void setVelocity(double velocity) {

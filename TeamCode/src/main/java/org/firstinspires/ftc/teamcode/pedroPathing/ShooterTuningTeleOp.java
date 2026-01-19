@@ -86,7 +86,7 @@ public class ShooterTuningTeleOp extends OpMode {
         // used by both tuning PIDFs and finding best velocity for distances
         shooter.setVelocity(curTargetVelocity);
 
-        double curVelocity = shooter.getLeftMotorVelocity();
+        double curVelocity = Math.abs(shooter.getLeftMotorVelocity());
         double error = curTargetVelocity - curVelocity;
 
         telemetry.addData("Target Velocity", curTargetVelocity);
