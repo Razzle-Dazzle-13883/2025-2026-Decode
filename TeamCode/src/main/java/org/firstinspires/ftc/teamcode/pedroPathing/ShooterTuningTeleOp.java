@@ -77,9 +77,10 @@ public class ShooterTuningTeleOp extends OpMode {
         if (gamepad1.rightBumperWasPressed()) {
             robot.intakeOff();
         }
-
+/*
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         shooter.setPIDFCoefficients(pidfCoefficients);
+ */
         // End PIDFs tuning
 
         // this is also configurable via Panels UI
