@@ -37,7 +37,7 @@ public class Turret {
     private static final double TICKS_PER_DEGREE = 384.5 // ticks per rotation per Yellow Jacket 5203 spec
             * 121.0 / 57.0 // This is the external gear reduction, a 57T pinion gear that drives a 127T hub-mount gear
             * 1/360.0; // we want ticks per degree, not per rotation
-    private double turrentAutoTurnPower = 0.5;
+    private double turretAutoTurnPower = 0.8;
     private boolean isRedAlliance = false; // default to Blue
 
     public Turret(OpMode opMode) {
@@ -183,11 +183,11 @@ public class Turret {
 
             turretMotor.setTargetPosition(turnInTicks);
             turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-            turretMotor.setPower(this.turrentAutoTurnPower);
+            turretMotor.setPower(this.turretAutoTurnPower);
 
             myOpMode.telemetry.addData("Turret turn", turnInDegree);
             myOpMode.telemetry.addData("Turret ticks", turnInTicks);
-            myOpMode.telemetry.addData("Turret power", turrentAutoTurnPower);
+            myOpMode.telemetry.addData("Turret power", turretAutoTurnPower);
         }
         myOpMode.telemetry.update();
     }

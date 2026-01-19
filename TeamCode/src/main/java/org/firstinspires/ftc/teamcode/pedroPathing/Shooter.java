@@ -12,7 +12,7 @@ public class Shooter {
     public static final double TICKS_PER_SECOND = (RPM / 60) * TICKS_PER_REV;
 
     private DcMotorEx leftShooterMotor;
-    private DcMotorEx rightShooterMotor;
+    //private DcMotorEx rightShooterMotor;
 
     private OpMode myOpMode;
     public Shooter(OpMode opMode){
@@ -21,34 +21,34 @@ public class Shooter {
 
     public void init() {
         leftShooterMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "leftShooterMotor");
-        rightShooterMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "rightShooterMotor");
+        //rightShooterMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "rightShooterMotor");
 
         leftShooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        rightShooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
+        //rightShooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Reverse both shooter motors
-        leftShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        leftShooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
+        //rightShooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
     }
 
     public void setVelocity(double velocity) {
         leftShooterMotor.setVelocity(velocity);
-        rightShooterMotor.setVelocity(velocity);
+        // rightShooterMotor.setVelocity(velocity);
     }
 
     public double getLeftMotorVelocity() {
         return leftShooterMotor.getVelocity();
     }
 
-    public double getRightMotorVelocity() {
-        return rightShooterMotor.getVelocity();
-    }
+    //public double getRightMotorVelocity() {
+        //return rightShooterMotor.getVelocity();
+   //}
 
     public void setPIDFCoefficients(PIDFCoefficients pidfCoefficients) {
         leftShooterMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        rightShooterMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
+        // rightShooterMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
     }
 }

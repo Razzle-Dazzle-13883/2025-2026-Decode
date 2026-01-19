@@ -12,7 +12,7 @@ public class ShooterTuningTeleOp extends OpMode {
     private Shooter shooter;
 
     // public static fields should be configurable via Panels UI
-    public static double highVelocity = 1500.0;
+    public static double highVelocity = 1740.0;
     public static double lowVelocity = 900.0;
     public static double curTargetVelocity = highVelocity; // best target velocity for certain distance to goal
 
@@ -39,7 +39,7 @@ public class ShooterTuningTeleOp extends OpMode {
     @Override
     public void loop() {
         telemetry.addData("Current Left Velocity", "%.2f", shooter.getLeftMotorVelocity());
-        telemetry.addData("Current Right Velocity", "%.2f", shooter.getRightMotorVelocity());
+        //telemetry.addData("Current Right Velocity", "%.2f", shooter.getRightMotorVelocity());
 
         // Begin PIDFs tuning
         if (gamepad1.yWasPressed()) {
@@ -58,7 +58,7 @@ public class ShooterTuningTeleOp extends OpMode {
             F -= stepSizes[stepIndex];
         }
 
-        if (gamepad1.dpadUpWasPressed()) {
+        if (gamepad1.dpadRightWasPressed()) {
             F += stepSizes[stepIndex];
         }
 
@@ -68,6 +68,14 @@ public class ShooterTuningTeleOp extends OpMode {
 
         if (gamepad1.dpadDownWasPressed()) {
             P -= stepSizes[stepIndex];
+        }
+
+        if (gamepad1.aWasPressed()) {
+            robot.intakeShoot();
+        }
+
+        if (gamepad1.rightBumperWasPressed()) {
+            robot.intakeOff();
         }
 
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);

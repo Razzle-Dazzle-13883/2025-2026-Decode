@@ -22,7 +22,7 @@ public class Robot {
     DcMotor backRightMotor;
     DcMotor intakeMotor;
     DcMotor leftShooterMotor;
-    DcMotor rightShooterMotor;
+    //DcMotor rightShooterMotor;
 
     Servo leftKicker;
     // CRServo rightKicker;
@@ -74,7 +74,7 @@ public class Robot {
         backRightMotor = myOpMode.hardwareMap.dcMotor.get("backRightMotor");
         intakeMotor = myOpMode.hardwareMap.dcMotor.get("intakeMotor");
         leftShooterMotor = myOpMode.hardwareMap.dcMotor.get("leftShooterMotor");
-        rightShooterMotor = myOpMode.hardwareMap.dcMotor.get("rightShooterMotor");
+        //rightShooterMotor = myOpMode.hardwareMap.dcMotor.get("rightShooterMotor");
 
         try {
             leftKicker = myOpMode.hardwareMap.get(Servo.class, "leftKicker");
@@ -104,7 +104,7 @@ public class Robot {
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Reverse the right side motors. This may be wrong for your setup.
         // If your robot moves backwards when commanded to go forwards,
@@ -114,7 +114,7 @@ public class Robot {
         
         // Reverse both shooter motors
         leftShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
-        rightShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
+        //rightShooterMotor.setDirection(DcMotorSimple.Direction.REVERSE);
 
         // initIMU(); no need as we use Two Wheel + IMU for PR
     }
@@ -133,7 +133,7 @@ public class Robot {
         backRightMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         intakeMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
         leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
+        //rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
     }
 
     public void drive(int lF, int lB, int rF, int rB, double speed) {
@@ -186,19 +186,19 @@ public class Robot {
 
     public void shooterOn() { 
         leftShooterMotor.setPower(SHOOTERRUN);
-        rightShooterMotor.setPower(SHOOTERRUN);
+        //rightShooterMotor.setPower(SHOOTERRUN);
     }
     public void shooterClose() { 
         leftShooterMotor.setPower(SHOOTERCLOSE);
-        rightShooterMotor.setPower(SHOOTERCLOSE);
+        //rightShooterMotor.setPower(SHOOTERCLOSE);
     }
     public void shooterOff() { 
         leftShooterMotor.setPower(SHOOTERSTOP);
-        rightShooterMotor.setPower(SHOOTERSTOP);
+        //rightShooterMotor.setPower(SHOOTERSTOP);
     }
     public void shooterRev() { 
         leftShooterMotor.setPower(SHOOTERREVERSE);
-        rightShooterMotor.setPower(SHOOTERREVERSE);
+        //rightShooterMotor.setPower(SHOOTERREVERSE);
     }
     
     /**
