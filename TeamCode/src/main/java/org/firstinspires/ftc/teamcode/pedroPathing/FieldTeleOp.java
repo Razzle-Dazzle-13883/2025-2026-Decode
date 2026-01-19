@@ -276,7 +276,7 @@ public class FieldTeleOp extends OpMode {
                     -gamepad1.left_stick_y,
                     driveStrafe,
                     smoothTurnRate + strafeCorrection,
-                    false // Field Centric
+                    true // Robot Centric
             );
 
                 //This is how it looks with slowMode on
@@ -284,7 +284,7 @@ public class FieldTeleOp extends OpMode {
                     -gamepad1.left_stick_y * slowModeMultiplier,
                     driveStrafe * slowModeMultiplier,
                     (smoothTurnRate + strafeCorrection) * slowModeMultiplier,
-                    false // Field Centric
+                    true // Robot Centric
             );
         }
 /*
@@ -368,7 +368,7 @@ public class FieldTeleOp extends OpMode {
         lastDpadLeft = gamepad1.dpad_left;
         
         // Left Bumper: Mode switching
-        if (gamepad1.left_bumper && !lastLeftBumper) {
+        if (gamepad1.leftBumperWasPressed()) {
             if (turretMode == TurretMode.APRILTAG) {
                 // From AprilTag mode: switch to field-relative mode
                 turretMode = TurretMode.FIELD_RELATIVE;
@@ -403,8 +403,11 @@ public class FieldTeleOp extends OpMode {
 
         // Turret control - only run if not in AprilTag mode
         if (turretMode == TurretMode.FIELD_RELATIVE) {
-            double currentRobotHeading = Math.toDegrees(follower.getPose().getHeading()); // degrees (field-relative)
-            turret.autoTurn(currentRobotHeading);
+            Pose currentPose = follower.getPose();
+            double currentRobotHeading = Math.toDegrees(currentPose.getHeading()); // degrees (field-relative)
+            double x = currentPose.getX();
+            double y = currentPose.getY();
+            turret.autoTurn2(currentRobotHeading, x, y);
 /*  FIXME
             // Hybrid control: Combines velocity feedforward with position feedback using encoder
             
