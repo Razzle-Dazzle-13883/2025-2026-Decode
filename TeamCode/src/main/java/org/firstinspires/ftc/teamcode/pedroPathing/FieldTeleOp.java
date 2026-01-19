@@ -28,6 +28,7 @@ public class FieldTeleOp extends OpMode {
     private boolean lastGuide = false;
     private Robot robot;
     private Turret turret;
+    private Shooter shooter;
     private boolean isRedAlliance = false; // default to Blue
     
     // Turn control variables for smooth turning
@@ -135,6 +136,8 @@ public class FieldTeleOp extends OpMode {
         robot.initHardware(); // Initialize all hardware components
         turret = new Turret(this);
         turret.init();
+        shooter = new Shooter(this);
+        shooter.init();;
 
         follower = Constants.createFollower(hardwareMap);
         follower.setStartingPose(startingPose == null ? new Pose() : startingPose);
@@ -183,6 +186,7 @@ public class FieldTeleOp extends OpMode {
         //If you don't pass anything in, it uses the default (false)
         follower.startTeleopDrive();
         turret.setAlliance(isRedAlliance);
+        shooter.setAlliance(isRedAlliance);
     }
     
     /**
@@ -316,12 +320,13 @@ public class FieldTeleOp extends OpMode {
         // Only run if NOT tuning strafe correction (Guide/Back button not held)
         boolean isTuning = gamepad1.guide || gamepad1.back;
         
-        if (!isTuning && gamepad1.dpad_up && !lastDpadUp) {
-            robot.shooterOn();
+        if (!isTuning && gamepad1.dpadUpWasPressed()) {
+            Pose pose = follower.getPose();
+            shooter.shooterOn(pose.getX(), pose.getY());
         }
 
         if (!isTuning && gamepad1.dpad_down && !lastDpadDown) {
-            robot.shooterOff();
+            shooter.shooterIdle();
             robot.intakeOff();
             sequenceState = BSequenceState.IDLE; // Reset sequence state
         }

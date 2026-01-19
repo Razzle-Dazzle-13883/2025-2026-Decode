@@ -17,8 +17,8 @@ public class ShooterTuningTeleOp extends OpMode {
     public static double curTargetVelocity = highVelocity; // best target velocity for certain distance to goal
 
     // for PIDFs tuning
-    double F = 0;
-    double P = 0;
+    double F = -27.3;
+    double P = 5.803;
     double[] stepSizes = {10.0, 1.0, 0.1, 0.01, 0.001};
     int stepIndex = 1;
     // end for PIDFs tuning
@@ -32,8 +32,8 @@ public class ShooterTuningTeleOp extends OpMode {
         shooter.init();
 
         // Uncomment when ready for PIDFs tuning
-        // PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
-        // shooter.setPIDFCoefficients(pidfCoefficients);
+        PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
+        shooter.setPIDFCoefficients(pidfCoefficients);
     }
 
     @Override
@@ -77,10 +77,10 @@ public class ShooterTuningTeleOp extends OpMode {
         if (gamepad1.rightBumperWasPressed()) {
             robot.intakeOff();
         }
-/*
+
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
-        shooter.setPIDFCoefficients(pidfCoefficients);
- */
+         shooter.setPIDFCoefficients(pidfCoefficients);
+
         // End PIDFs tuning
 
         // this is also configurable via Panels UI
