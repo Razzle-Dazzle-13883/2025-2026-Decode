@@ -319,10 +319,12 @@ public class FieldTeleOp extends OpMode {
         // Shooter control with edge detection
         // Only run if NOT tuning strafe correction (Guide/Back button not held)
         boolean isTuning = gamepad1.guide || gamepad1.back;
-        
-        if (!isTuning && gamepad1.dpadUpWasPressed()) {
-            Pose pose = follower.getPose();
-            shooter.shooterOn(pose.getX(), pose.getY());
+
+        Pose currentPose;
+        if (gamepad1.dpadUpWasPressed()) {
+            currentPose = follower.getPose();
+            this.telemetry.addLine("Shooter ON");
+            shooter.shooterOn(currentPose.getX(), currentPose.getY());
         }
 
         if (!isTuning && gamepad1.dpad_down && !lastDpadDown) {
@@ -408,7 +410,7 @@ public class FieldTeleOp extends OpMode {
 
         // Turret control - only run if not in AprilTag mode
         if (turretMode == TurretMode.FIELD_RELATIVE) {
-            Pose currentPose = follower.getPose();
+            currentPose = follower.getPose();
             double currentRobotHeading = Math.toDegrees(currentPose.getHeading()); // degrees (field-relative)
             double x = currentPose.getX();
             double y = currentPose.getY();
@@ -561,11 +563,13 @@ public class FieldTeleOp extends OpMode {
             lastTurretPower = manualTurretPower;
             
             // Display manual turret control info on Driver Station
+            /*
             telemetry.addLine("=== TURRET MANUAL MODE ===");
             telemetry.addData("Left Trigger", "%.2f", gamepad1.left_trigger);
             telemetry.addData("Right Trigger", "%.2f", gamepad1.right_trigger);
             telemetry.addData("Turret Power", "%.2f", manualTurretPower);
             telemetry.addData("Turret Position", "%.1f deg", turretPositionEstimate);
+             */
         }
         // Note: AprilTag mode is handled separately via turret.followTag() call
 
@@ -656,7 +660,8 @@ public class FieldTeleOp extends OpMode {
         telemetryM.debug("robotHeading", Math.toDegrees(follower.getPose().getHeading()));
         telemetryM.debug("lockedFieldDir", lockedFieldDirection);
         telemetryM.debug("turretPosEst", turretPositionEstimate);
-        
+
+        /*
         // Display turret info on Driver Station telemetry
         if (turretMode == TurretMode.FIELD_RELATIVE) {
             // Calculate values for display
@@ -731,7 +736,7 @@ public class FieldTeleOp extends OpMode {
             telemetry.addLine("Left Bumper: Switch to Field-Relative");
             telemetry.addLine("Left Dpad: Switch to Manual");
         }
-
+*/
         // Only run AprilTag control when in AprilTag mode
         if (turretMode == TurretMode.APRILTAG) {
             turret.followTag();

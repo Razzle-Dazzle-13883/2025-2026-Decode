@@ -37,7 +37,7 @@ public class Turret {
     private static final double TICKS_PER_DEGREE = 384.5 // ticks per rotation per Yellow Jacket 5203 spec
             * 121.0 / 57.0 // This is the external gear reduction, a 57T pinion gear that drives a 127T hub-mount gear
             * 1/360.0; // we want ticks per degree, not per rotation
-    private double turretAutoTurnPower = 0.8;
+    private double turretAutoTurnPower = 1.0;
     private boolean isRedAlliance = false; // default to Blue
 
     public Turret(OpMode opMode) {
@@ -147,11 +147,13 @@ public class Turret {
 
         // normalize to [0, 360)
         double normalizedRobotHeadingInDegree = (robotHeadingInDegree % 360 + 360) % 360;
+        /*
         myOpMode.telemetry.addData("Current bot heading", robotHeadingInDegree);
         myOpMode.telemetry.addData("Current bot heading normalized [0,360)", normalizedRobotHeadingInDegree);
         myOpMode.telemetry.addData("Current turret ticks", turretMotor.getCurrentPosition());
         myOpMode.telemetry.addData("Current bot X", x);
         myOpMode.telemetry.addData("Current bot Y", y);
+         */
 
         // when bot facing the goal, turret auto turns; otherwise no turn
         if (isRedAlliance) { // RED GOAL
@@ -170,7 +172,7 @@ public class Turret {
             // when bot facing the goal, turret auto turns; otherwise no turn
             double turnInRadians = Math.atan((144.0 - y) / (0.0 - (144.0 + x))); // -pi/2 to pi/2
             if (!Double.isNaN(turnInRadians)) {
-                myOpMode.telemetry.addData("Turret atan: ", Math.toDegrees(turnInRadians));
+                // myOpMode.telemetry.addData("Turret atan: ", Math.toDegrees(turnInRadians));
                 if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 180.0) {
                     turnInDegree = (180 + Math.toDegrees(turnInRadians)) - robotHeadingInDegree;
                     doAutoTurn = true;
@@ -184,12 +186,12 @@ public class Turret {
             turretMotor.setTargetPosition(turnInTicks);
             turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             turretMotor.setPower(this.turretAutoTurnPower);
-
+/*
             myOpMode.telemetry.addData("Turret turn", turnInDegree);
             myOpMode.telemetry.addData("Turret ticks", turnInTicks);
             myOpMode.telemetry.addData("Turret power", turretAutoTurnPower);
+ */
         }
-        myOpMode.telemetry.update();
     }
     private void detectTag() {
         tagDetected = false;

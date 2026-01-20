@@ -21,6 +21,7 @@ public class Shooter {
     private  static final  double HIGH_VELOCITY = 1850;
     private OpMode myOpMode;
     private boolean isRedAlliance = false; // default to Blue
+    private double distanceToGoalOffset = 8.0; // offset the measurment with PetraPathing X/Y
     public Shooter(OpMode opMode){
         this.myOpMode = opMode;
     }
@@ -66,10 +67,14 @@ public class Shooter {
 
     public void shooterIdle() {
         this.leftShooterMotor.setVelocity(LOW_VELOCITY);
+        myOpMode.telemetry.addData("shooterIdle Velocity: ", LOW_VELOCITY);
     }
     public void shooterOn(double x, double y) {
         double distance = getDistanceToGoal(x, y);
         double targetVelocity = calculateVelocity(distance);
+
+        myOpMode.telemetry.addData("Shooting Velocity: ", targetVelocity);
+
         this.leftShooterMotor.setVelocity(targetVelocity);
     }
     public double calculateVelocity(double distance) {
@@ -81,25 +86,26 @@ public class Shooter {
     }
 
     public double getDistanceToGoal(double x, double y) {
-        double goal_x = 0.0;
-        double goal_y = 144.0;
+        double goal_x = 14.0;
+        double goal_y = 134.0;
 
         if (this.isRedAlliance) {
-            goal_x = 144.0;
-            goal_y = 144.0;
+            goal_x = 129.0;
+            goal_y = 133.0;
         }
 
         double dx = goal_x - x;
         double dy = goal_y - y;
         double distance = Math.sqrt(Math.pow(dx, 2) + Math.pow(dy, 2));
 
+        myOpMode.telemetry.addLine("SHOOTER");
         myOpMode.telemetry.addData("getDistanceToGoal X:", x);
         myOpMode.telemetry.addData("Goal X:", goal_x);
         myOpMode.telemetry.addData("getDistanceToGoal Y:", y);
         myOpMode.telemetry.addData("Goal Y:", goal_y);
         myOpMode.telemetry.addData("Distance to goal: ", distance);
-        myOpMode.telemetry.update();
+        myOpMode.telemetry.addData("Distance to goal + offset: ", distance - distanceToGoalOffset);
 
-        return distance;
+        return distance - distanceToGoalOffset;
     }
 }
