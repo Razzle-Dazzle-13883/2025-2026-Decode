@@ -141,7 +141,7 @@ public class Turret {
         this.isRedAlliance = isRedAlliance;
     }
 
-    public void autoTurn2(double robotHeadingInDegree, double x, double y) {
+    public void autoTurn(double x, double y, double robotHeadingInDegree) {
         double turnInDegree = 0.0;
         boolean doAutoTurn = false;
 
@@ -157,7 +157,7 @@ public class Turret {
 
         // when bot facing the goal, turret auto turns; otherwise no turn
         if (isRedAlliance) { // RED GOAL
-            double turnInRadians = Math.atan((144.0 - y) / (144.0 - x)); // -pi/2 to pi/2
+            double turnInRadians = Math.atan((144.0 - y) / (144.0 - x)); // 0 to pi/2
             if (!Double.isNaN(turnInRadians)) {
                 if (normalizedRobotHeadingInDegree >= 0.0 && normalizedRobotHeadingInDegree <= 135.0) {
                     turnInDegree = Math.toDegrees(turnInRadians) - normalizedRobotHeadingInDegree;
@@ -170,17 +170,23 @@ public class Turret {
             }
         } else { // BLUE GOAL
             // when bot facing the goal, turret auto turns; otherwise no turn
-            double turnInRadians = Math.atan((144.0 - y) / (0.0 - (144.0 + x))); // -pi/2 to pi/2
+            double turnInRadians = Math.atan((144.0 - y) / (x - 0.0)); // 0 to pi/2
             if (!Double.isNaN(turnInRadians)) {
                 // myOpMode.telemetry.addData("Turret atan: ", Math.toDegrees(turnInRadians));
-                if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 180.0) {
-                    turnInDegree = (180 + Math.toDegrees(turnInRadians)) - robotHeadingInDegree;
+                if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 225.0) {
+                    turnInDegree = (180 - robotHeadingInDegree) - Math.toDegrees(turnInRadians);
                     doAutoTurn = true;
                 }
             }
         }
 
         if (doAutoTurn) {
+            if (turnInDegree > 90.0) {
+                turnInDegree = 90.0;
+            }
+            if (turnInDegree < -90.0) {
+                turnInDegree = -90.0;
+            }
             int turnInTicks = (int) (turnInDegree * TICKS_PER_DEGREE);
 
             turretMotor.setTargetPosition(turnInTicks);

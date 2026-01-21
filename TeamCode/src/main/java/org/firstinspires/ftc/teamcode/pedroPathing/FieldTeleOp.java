@@ -29,8 +29,17 @@ public class FieldTeleOp extends OpMode {
     private Robot robot;
     private Turret turret;
     private Shooter shooter;
-    private boolean isRedAlliance = false; // default to Blue
-    
+
+    // we want to know what auto mode it ran before the teleop
+    // so we know the robot's startPose
+    private enum AutonomusOpMode {
+        BLUE_NEAR,
+        BLUE_FAR,
+        RED_NEAR,
+        RED_FAR
+    }
+    AutonomusOpMode autonomusOpMode = AutonomusOpMode.BLUE_NEAR;
+
     // Turn control variables for smooth turning
     private double currentTurnRate = 0.0;
     private double targetTurnRate = 0.0;
@@ -42,8 +51,8 @@ public class FieldTeleOp extends OpMode {
     private double timeAtMaxInput = 0.0; // Time spent at maximum input
     private double currentMaxAllowedRate = 0.0; // Current maximum allowed turn rate
     private double smoothTurnRate = 0.0; // Current smoothed turn rate (accessible throughout loop)
-    
-    
+
+
     // B button sequence state machine
     private enum BSequenceState {
         IDLE, SHOOTER_ON_WAIT, KICKER_UP_WAIT_1, KICKER_DOWN_WAIT_1,
@@ -166,17 +175,31 @@ public class FieldTeleOp extends OpMode {
 
     @Override
     public void init_loop() {
-        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");
-        telemetry.addLine("Press Right Bumper for Red, Left Bumper for Blue");
+        startingPose = new Pose(21.408, 100.51); // default is from blue near
+        telemetry.addData("Auto was", autonomusOpMode.toString());
+        telemetry.addData("Starding Pose", startingPose.toString());
+        telemetry.addLine("Press Left Bumper to choose which auto it ran...");
         telemetry.update();
 
-        if (gamepad1.right_bumper) {
-            isRedAlliance = true;
-        } else if (gamepad1.left_bumper) {
-            isRedAlliance = false;
+        if (gamepad1.leftBumperWasPressed()) {
+            if (autonomusOpMode == AutonomusOpMode.BLUE_NEAR) {
+                autonomusOpMode = AutonomusOpMode.BLUE_FAR;
+                startingPose = new Pose(58.883, 35.529);
+            } else if (autonomusOpMode == AutonomusOpMode.BLUE_FAR) {
+                autonomusOpMode = AutonomusOpMode.RED_NEAR;
+                startingPose = new Pose(122.337, 101.112);
+            } else if (autonomusOpMode == AutonomusOpMode.RED_NEAR) {
+                autonomusOpMode = AutonomusOpMode.RED_FAR;
+                startingPose = new Pose(122.337, 101.112);
+            } else {
+                autonomusOpMode = AutonomusOpMode.BLUE_NEAR;
+                startingPose = new Pose(21.408, 100.51);
+            }
+
+            telemetry.addData("Auto was", autonomusOpMode.toString());
+            telemetry.addData("Starding Pose", startingPose.toString());
+            telemetry.update();
         }
-        telemetry.addData("Alliance", isRedAlliance ? "Red" : "Blue");;
-        telemetry.update();
     }
 
     @Override
@@ -185,6 +208,8 @@ public class FieldTeleOp extends OpMode {
         //In order to use float mode, add .useBrakeModeInTeleOp(true); to your Drivetrain Constants in Constant.java (for Mecanum)
         //If you don't pass anything in, it uses the default (false)
         follower.startTeleopDrive();
+        boolean isRedAlliance = false;
+        isRedAlliance = (autonomusOpMode == AutonomusOpMode.RED_NEAR || autonomusOpMode == AutonomusOpMode.RED_FAR);
         turret.setAlliance(isRedAlliance);
         shooter.setAlliance(isRedAlliance);
     }
@@ -414,7 +439,7 @@ public class FieldTeleOp extends OpMode {
             double currentRobotHeading = Math.toDegrees(currentPose.getHeading()); // degrees (field-relative)
             double x = currentPose.getX();
             double y = currentPose.getY();
-            turret.autoTurn2(currentRobotHeading, x, y);
+            turret.autoTurn(x, y, currentRobotHeading);
 /*  FIXME
             // Hybrid control: Combines velocity feedforward with position feedback using encoder
             
