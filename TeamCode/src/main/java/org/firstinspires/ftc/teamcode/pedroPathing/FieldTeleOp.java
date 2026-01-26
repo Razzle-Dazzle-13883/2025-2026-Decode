@@ -18,7 +18,7 @@ import java.util.function.Supplier;
 @TeleOp
 public class FieldTeleOp extends OpMode {
     private Follower follower;
-    public static Pose startingPose; //See ExampleAuto to understand how to use this
+    public Pose startingPose; //See ExampleAuto to understand how to use this
     private boolean automatedDrive;
     private Supplier<PathChain> pathChain;
     private TelemetryManager telemetryM;
@@ -36,7 +36,8 @@ public class FieldTeleOp extends OpMode {
         BLUE_NEAR,
         BLUE_FAR,
         RED_NEAR,
-        RED_FAR
+        RED_FAR,
+        ORIGIN
     }
     AutonomusOpMode autonomusOpMode = AutonomusOpMode.BLUE_NEAR;
 
@@ -175,30 +176,24 @@ public class FieldTeleOp extends OpMode {
 
     @Override
     public void init_loop() {
-        startingPose = new Pose(21.408, 100.51); // default is from blue near
+        initStartingPose();
+
         telemetry.addData("Auto was", autonomusOpMode.toString());
-        telemetry.addData("Starding Pose", startingPose.toString());
+        telemetry.addData("Starting Pose", startingPose.toString());
         telemetry.addLine("Press Left Bumper to choose which auto it ran...");
-        telemetry.update();
 
         if (gamepad1.leftBumperWasPressed()) {
             if (autonomusOpMode == AutonomusOpMode.BLUE_NEAR) {
                 autonomusOpMode = AutonomusOpMode.BLUE_FAR;
-                startingPose = new Pose(58.883, 35.529);
             } else if (autonomusOpMode == AutonomusOpMode.BLUE_FAR) {
                 autonomusOpMode = AutonomusOpMode.RED_NEAR;
-                startingPose = new Pose(122.337, 101.112);
             } else if (autonomusOpMode == AutonomusOpMode.RED_NEAR) {
                 autonomusOpMode = AutonomusOpMode.RED_FAR;
-                startingPose = new Pose(122.337, 101.112);
+            } else if (autonomusOpMode == AutonomusOpMode.RED_FAR) {
+                autonomusOpMode = AutonomusOpMode.ORIGIN;
             } else {
                 autonomusOpMode = AutonomusOpMode.BLUE_NEAR;
-                startingPose = new Pose(21.408, 100.51);
             }
-
-            telemetry.addData("Auto was", autonomusOpMode.toString());
-            telemetry.addData("Starding Pose", startingPose.toString());
-            telemetry.update();
         }
     }
 
@@ -769,5 +764,19 @@ public class FieldTeleOp extends OpMode {
 
         // Update standard telemetry for Driver Station
         telemetry.update();
+    }
+
+    private void initStartingPose() {
+        if (autonomusOpMode == AutonomusOpMode.BLUE_NEAR) {
+            startingPose = new Pose(21.408, 100.51);
+        } else if (autonomusOpMode == AutonomusOpMode.BLUE_FAR) {
+            startingPose = new Pose(58.883, 35.529);
+        } else if (autonomusOpMode == AutonomusOpMode.RED_NEAR) {
+            startingPose = new Pose(122.337, 101.112);
+        } else if (autonomusOpMode == AutonomusOpMode.RED_FAR) {
+            startingPose = new Pose(86.564, 35.218);
+        } else {
+            startingPose = new Pose();
+        }
     }
 }

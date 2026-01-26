@@ -118,6 +118,7 @@ public class RedFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
+                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
@@ -180,6 +181,7 @@ public class RedFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Sample */
                     robot.shooterOff();
+                    turret.reset();
                     pathTimer.resetTimer();
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
                     //follower.followPath(intakePickup2, true);

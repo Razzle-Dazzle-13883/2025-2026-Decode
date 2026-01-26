@@ -147,13 +147,13 @@ public class Turret {
 
         // normalize to [0, 360)
         double normalizedRobotHeadingInDegree = (robotHeadingInDegree % 360 + 360) % 360;
-        /*
+
         myOpMode.telemetry.addData("Current bot heading", robotHeadingInDegree);
         myOpMode.telemetry.addData("Current bot heading normalized [0,360)", normalizedRobotHeadingInDegree);
         myOpMode.telemetry.addData("Current turret ticks", turretMotor.getCurrentPosition());
         myOpMode.telemetry.addData("Current bot X", x);
         myOpMode.telemetry.addData("Current bot Y", y);
-         */
+
 
         // when bot facing the goal, turret auto turns; otherwise no turn
         if (isRedAlliance) { // RED GOAL
@@ -172,7 +172,7 @@ public class Turret {
             // when bot facing the goal, turret auto turns; otherwise no turn
             double turnInRadians = Math.atan((144.0 - y) / (x - 0.0)); // 0 to pi/2
             if (!Double.isNaN(turnInRadians)) {
-                // myOpMode.telemetry.addData("Turret atan: ", Math.toDegrees(turnInRadians));
+                myOpMode.telemetry.addData("Turret atan: ", Math.toDegrees(turnInRadians));
                 if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 225.0) {
                     turnInDegree = (180 - robotHeadingInDegree) - Math.toDegrees(turnInRadians);
                     doAutoTurn = true;
@@ -192,11 +192,11 @@ public class Turret {
             turretMotor.setTargetPosition(turnInTicks);
             turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
             turretMotor.setPower(this.turretAutoTurnPower);
-/*
+
             myOpMode.telemetry.addData("Turret turn", turnInDegree);
             myOpMode.telemetry.addData("Turret ticks", turnInTicks);
             myOpMode.telemetry.addData("Turret power", turretAutoTurnPower);
- */
+
         }
     }
     private void detectTag() {
