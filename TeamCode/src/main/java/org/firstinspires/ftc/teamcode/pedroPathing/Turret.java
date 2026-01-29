@@ -174,7 +174,7 @@ public class Turret {
             if (!Double.isNaN(turnInRadians)) {
                 myOpMode.telemetry.addData("Turret atan: ", Math.toDegrees(turnInRadians));
                 if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 225.0) {
-                    turnInDegree = (180 - robotHeadingInDegree) - Math.toDegrees(turnInRadians);
+                    turnInDegree = (180 - normalizedRobotHeadingInDegree) - Math.toDegrees(turnInRadians);
                     doAutoTurn = true;
                 }
             }
