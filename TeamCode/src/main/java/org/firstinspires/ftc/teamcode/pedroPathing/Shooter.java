@@ -15,8 +15,8 @@ public class Shooter {
     private DcMotorEx leftShooterMotor;
     //private DcMotorEx rightShooterMotor;
     // for PIDFs tuning
-    private static final double F = -27.3;
-    private static final double P = 5.803;
+    private static final double F = -40.8;
+    private static final double P = 10.2;
     private  static final  double LOW_VELOCITY = 900;
     private  static final  double HIGH_VELOCITY = 1850;
     private OpMode myOpMode;

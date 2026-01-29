@@ -1,4 +1,4 @@
-package org.firstinspires.ftc.teamcode.pedroPathing; // make sure this aligns with class location
+package org.firstinspires.ftc.teamcode.pedroPathing;
 
 import com.pedropathing.follower.Follower;
 import com.pedropathing.geometry.BezierLine;
@@ -7,7 +7,7 @@ import com.pedropathing.paths.Path;
 import com.pedropathing.paths.PathChain;
 import com.pedropathing.util.Timer;
 import com.qualcomm.robotcore.eventloop.opmode.Autonomous;
-import  com.qualcomm.robotcore.eventloop.opmode.OpMode;
+import com.qualcomm.robotcore.eventloop.opmode.OpMode;
 
 @Autonomous(name = "BlueNearAuto", group = "Auto")
 public class BlueNearAuto extends OpMode {
@@ -15,88 +15,71 @@ public class BlueNearAuto extends OpMode {
     private Robot robot;
     private Turret turret;
     private Shooter shooter;
-
     private Follower follower;
     private Timer pathTimer, actionTimer, opmodeTimer;
-
-    // Shooter sequence state machine (from FieldTeleOp)
-    /*
-    private enum ShooterSequenceState {
-        IDLE, SHOOTER_ON_WAIT, KICKER_UP_WAIT_1, KICKER_DOWN_WAIT_1,
-        INTAKE_SHOOT_WAIT, KICKER_UP_WAIT_2, KICKER_DOWN_WAIT_2,
-        KICKER_UP_WAIT_3, KICKER_DOWN_WAIT_3, SHOOTER_OFF_WAIT
-    }
-     */
-
-    // private ShooterSequenceState sequenceState = ShooterSequenceState.IDLE;
-
     private int pathState;
-    private final Pose startPose = new Pose(23.03239740820733, 124.94168466522679, Math.toRadians(142)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(39.82721382289416, 111.57667386609069, Math.toRadians(142)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose readyPose = new Pose(39.87041036717063, 100.60475161987041, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose parkPose = new Pose(21.408207343412535, 100.5097192224622, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
 
-    private final Pose intake1Pose = new Pose(120.05183585313175, 83.66306695464363, Math.toRadians(0)); // Intake (First Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(95.48164146868251, 59.40388768898488, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose intake2Pose = new Pose(120.05183585313175, 59.714902807775374, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup3Pose = new Pose(49, 135, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(34.571006565730976, 137.21410320452233, Math.toRadians(0)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(47.7467588806712, 110.26364716799718, Math.toRadians(142)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose intake1Pose = new Pose(47.53545027545884, 59.52217533892712, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(11.897753108686516, 59.46097471135893, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose revPose = new Pose(32.12013057118542, 59.46097471135893, Math.toRadians(180)); // Intake (First Set) of Artifacts from the Spike Mark.
+    private final Pose intake2Pose = new Pose(47.53545027545884, 84.62844368800091, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2Pose = new Pose(17.746300694770802, 84.3201407323672, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose parkPose = new Pose(21.951747088186348, 98.56572379367722, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     Pose currentPose;
     private Path scorePreload;
-    private PathChain readyPark, park, scorePickup1, grabPickup2, intakePickup2, scorePickup2, grabPickup3, scorePickup3;
+    private PathChain readyIntake1, intakePickup1, reverse, scorePickup1, readyIntake2, intakePickup2, scorePickup2, park;
 
     public void buildPaths() {
-        /* This is our scorePreload path. We are using a BezierLine, which is a straight line. */
         scorePreload = new Path(new BezierLine(startPose, scorePose));
         scorePreload.setLinearHeadingInterpolation(startPose.getHeading(), scorePose.getHeading());
 
-    /* Here is an example for Constant Interpolation
-    scorePreload.setConstantInterpolation(startPose.getHeading()); */
-
         /* This is our grabPickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        readyPark = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, readyPose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), readyPose.getHeading())
+        readyIntake1 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, intake1Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), intake1Pose.getHeading())
                 .build();
 
-        park = follower.pathBuilder()
-                .addPath(new BezierLine(readyPose, parkPose))
-                .setLinearHeadingInterpolation(readyPose.getHeading(), parkPose.getHeading())
+        intakePickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(intake1Pose, pickup1Pose))
+                .setLinearHeadingInterpolation(intake1Pose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
         /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(intake1Pose, parkPose))
-                .setLinearHeadingInterpolation(intake1Pose.getHeading(), parkPose.getHeading())
+        reverse = follower.pathBuilder()
+                .addPath(new BezierLine(pickup1Pose, revPose))
+                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), revPose.getHeading())
                 .build();
 
         /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        grabPickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(parkPose, pickup2Pose))
-                .setLinearHeadingInterpolation(parkPose.getHeading(), pickup2Pose.getHeading())
+        scorePickup1 = follower.pathBuilder()
+                .addPath(new BezierLine(revPose, scorePose))
+                .setLinearHeadingInterpolation(revPose.getHeading(), scorePose.getHeading())
                 .build();
 
-        intakePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2Pose, intake2Pose))
-                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), intake2Pose.getHeading())
+        readyIntake2 = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, intake2Pose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), intake2Pose.getHeading())
                 .build();
 
         /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2Pose, scorePose))
-                .setLinearHeadingInterpolation(intake2Pose.getHeading(), scorePose.getHeading())
+        intakePickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(intake2Pose, pickup2Pose))
+                .setLinearHeadingInterpolation(intake2Pose.getHeading(), pickup2Pose.getHeading())
                 .build();
 
         /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        grabPickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, pickup3Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), pickup3Pose.getHeading())
+        scorePickup2 = follower.pathBuilder()
+                .addPath(new BezierLine(pickup2Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
                 .build();
 
         /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        scorePickup3 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup3Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup3Pose.getHeading(), scorePose.getHeading())
+        park = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, parkPose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading())
                 .build();
     }
 
@@ -107,101 +90,110 @@ public class BlueNearAuto extends OpMode {
                 setPathState(1);
                 break;
             case 1:
-
-            /* You could check for
-            - Follower State: "if(!follower.isBusy()) {}"
-            - Time: "if(pathTimer.getElapsedTimeSeconds() > 1) {}"
-            - Robot Position: "if(follower.getPose().getX() > 36) {}"
-            */
-
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     shooter.shooterIdle();
-                    robot.intakeOff();
+                    robot.kickerDown();
                     pathTimer.resetTimer();
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(readyPark, true);
+                    follower.followPath(readyIntake1, true);
                     setPathState(2);
                 }
                 break;
             case 2:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy()) {
-                    /* Grab Sample */
                     pathTimer.resetTimer();
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(park, true);
+                    follower.followPath(intakePickup1, true);
                     setPathState(3);
                 }
                 break;
             case 3:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
-                    /* Score Sample */
-                    robot.shooterOff();
                     pathTimer.resetTimer();
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    //follower.followPath(scorePickup1, true);
-                    setPathState(-1);
+                    follower.followPath(reverse, true);
+                    setPathState(4);
                 }
                 break;
             case 4:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup2Pose's position */
                 if (!follower.isBusy()) {
-                    /* Grab Sample */
-                    turret.followTag();
-                    robot.shooterOn();
-
-                    pathTimer.resetTimer();
-
-                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
-                    robot.intakeFast();
-
-                    pathTimer.resetTimer();
-
-                    while (pathTimer.getElapsedTimeSeconds() <= 4) {}
-                    robot.shooterOff();
                     robot.intakeOff();
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    // follower.followPath(grabPickup2, true);
-                    setPathState(-1);
+                    pathTimer.resetTimer();
+                    follower.followPath(scorePickup1, true);
+                    setPathState(5);
                 }
                 break;
             case 5:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
-                    /* Score Sample */
+                    currentPose = follower.getPose();
+                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    pathTimer.resetTimer();
 
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(intakePickup2, true);
+                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    robot.kickerUp();
+                    robot.intakeShoot();
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
+                    shooter.shooterIdle();
+                    robot.kickerDown();
+                    pathTimer.resetTimer();
+
+                    follower.followPath(readyIntake2, true);
                     setPathState(6);
                 }
                 break;
             case 6:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup3Pose's position */
                 if (!follower.isBusy()) {
-                    /* Grab Sample */
-
-                    /* Since this is a pathChain, we can have Pedro hold the end point while we are scoring the sample */
-                    follower.followPath(scorePickup2, true);
+                    pathTimer.resetTimer();
+                    follower.followPath(intakePickup2, true);
                     setPathState(7);
                 }
                 break;
             case 7:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
-                    /* Set the state to a Case we won't use or define, so it just stops running an new paths */
+                    robot.intakeOff();
+                    pathTimer.resetTimer();
+                    follower.followPath(scorePickup2, true);
+                    setPathState(8);
+                }
+                break;
+            case 8:
+                if (!follower.isBusy()) {
+                    currentPose = follower.getPose();
+                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    robot.kickerUp();
+                    robot.intakeShoot();
+                    pathTimer.resetTimer();
+
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
+                    robot.shooterOff();
+                    robot.intakeOff();
+                    robot.kickerDown();
+                    pathTimer.resetTimer();
+
+                    follower.followPath(park, true);
+                    setPathState(9);
+                }
+                break;
+            case 9:
+                if (!follower.isBusy()) {
+                    pathTimer.resetTimer();
                     setPathState(-1);
                 }
                 break;

@@ -15,13 +15,13 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-           .forwardZeroPowerAcceleration(-45.991071737652646)
-           .lateralZeroPowerAcceleration(-49.967084904806676)
-            .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.01, 0))
-            .headingPIDFCoefficients(new PIDFCoefficients(1, 0, 0.05, 0.02))
-            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.025,0,0.00001,0.6,0.01))
+           .forwardZeroPowerAcceleration(-46.51405561096492)
+           .lateralZeroPowerAcceleration(-47.814531348128014)
+            .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.02, 0.03))
+            .headingPIDFCoefficients(new PIDFCoefficients(1.8, 0, 0.06, 0.03))
+            .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.15,0,0.00001,0.6,0.01))
             .centripetalScaling(0.0002)
-            .mass(9.1);
+            .mass(9.89);
 
     public static TwoWheelConstants localizerConstants = new TwoWheelConstants()
             // Match hardwareMap names defined in Robot.initHardware()
@@ -31,8 +31,8 @@ public class Constants {
             .strafePodX(-4.5)
             .forwardEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.FORWARD)
-            .forwardTicksToInches(0.000530911)
-            .strafeTicksToInches(0.000527841)
+            .forwardTicksToInches(0.0007736419109546302)
+            .strafeTicksToInches(0.0005381202983047081)
             .IMU_HardwareMapName("imu")
             .IMU_Orientation(
                     new RevHubOrientationOnRobot(
@@ -44,8 +44,8 @@ public class Constants {
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
-            .xVelocity(54.4890777)
-            .yVelocity(28.173275041384)
+            .xVelocity(42.78446401514823)
+            .yVelocity(28.367220070264704)
             // Match hardwareMap names defined in Robot.initHardware()
             .rightFrontMotorName("frontRightMotor")
             .rightRearMotorName("backRightMotor")

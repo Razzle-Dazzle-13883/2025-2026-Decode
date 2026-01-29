@@ -345,11 +345,17 @@ public class FieldTeleOp extends OpMode {
             currentPose = follower.getPose();
             this.telemetry.addLine("Shooter ON");
             shooter.shooterOn(currentPose.getX(), currentPose.getY());
+            pathTimer.resetTimer();
+            while (pathTimer.getElapsedTimeSeconds() <= 1.5) {}
+            robot.intakeShoot();
+            robot.kickerUp();
+            pathTimer.resetTimer();
         }
 
         if (!isTuning && gamepad1.dpad_down && !lastDpadDown) {
             shooter.shooterIdle();
             robot.intakeOff();
+            robot.kickerDown();
             sequenceState = BSequenceState.IDLE; // Reset sequence state
         }
         
@@ -359,6 +365,7 @@ public class FieldTeleOp extends OpMode {
 
         if (gamepad1.a) {
             robot.intakeShoot();
+            robot.kickerDown();
             /*
             // Handle A button sequence with state machine (instead of B)
             if (sequenceState == BSequenceState.IDLE) {
@@ -369,16 +376,12 @@ public class FieldTeleOp extends OpMode {
              */
         }
 
-        if (gamepad1.b) {
-            robot.intakeFast();
-        }
-
         // Calculate delta time for turret position tracking
         double currentTime = time;
         double deltaTime = currentTime - lastLoopTime;
         lastLoopTime = currentTime;
         if (deltaTime <= 0) deltaTime = 0.02; // Default to ~50Hz if time hasn't updated
-        
+        /*
         // Turret mode switching logic
         // Left Dpad: Toggle AprilTag mode on/off
         if (gamepad1.dpad_left && !lastDpadLeft) {
@@ -393,6 +396,7 @@ public class FieldTeleOp extends OpMode {
             }
         }
         lastDpadLeft = gamepad1.dpad_left;
+         */
         
         // Left Bumper: Mode switching
         if (gamepad1.leftBumperWasPressed()) {
@@ -768,13 +772,13 @@ public class FieldTeleOp extends OpMode {
 
     private void initStartingPose() {
         if (autonomusOpMode == AutonomusOpMode.BLUE_NEAR) {
-            startingPose = new Pose(21.408, 100.51);
+            startingPose = new Pose(21.952, 98.566);
         } else if (autonomusOpMode == AutonomusOpMode.BLUE_FAR) {
-            startingPose = new Pose(58.883, 35.529);
+            startingPose = new Pose(61.674, 35.700);
         } else if (autonomusOpMode == AutonomusOpMode.RED_NEAR) {
-            startingPose = new Pose(122.337, 101.112);
+            startingPose = new Pose(120.427, 96.169);
         } else if (autonomusOpMode == AutonomusOpMode.RED_FAR) {
-            startingPose = new Pose(86.564, 35.218);
+            startingPose = new Pose(83.478, 35.461);
         } else {
             startingPose = new Pose();
         }
