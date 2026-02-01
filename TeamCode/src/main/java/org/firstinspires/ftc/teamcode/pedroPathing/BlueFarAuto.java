@@ -99,6 +99,7 @@ public class BlueFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
+                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
@@ -128,6 +129,7 @@ public class BlueFarAuto extends OpMode {
             case 3:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
+                    while (pathTimer.getElapsedTimeSeconds() <= 1.5) {}
                     robot.intakeOff();
                     pathTimer.resetTimer();
                     follower.followPath(scorePickup1, true);
@@ -137,6 +139,7 @@ public class BlueFarAuto extends OpMode {
             case 4:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
+                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
@@ -157,6 +160,7 @@ public class BlueFarAuto extends OpMode {
                 break;
             case 5:
                 if (!follower.isBusy()) {
+                    turret.reset();
                     pathTimer.resetTimer();
                     setPathState(-1);
                 }
@@ -200,9 +204,11 @@ public class BlueFarAuto extends OpMode {
 
         turret = new Turret(this);
         turret.init();
+        turret.setAlliance(false); // blue
 
         shooter = new Shooter(this);
         shooter.init();
+        shooter.setAlliance(false); // blue
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();

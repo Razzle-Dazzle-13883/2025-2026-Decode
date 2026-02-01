@@ -70,6 +70,9 @@ public class Shooter {
         myOpMode.telemetry.addData("shooterIdle Velocity: ", LOW_VELOCITY);
     }
     public void shooterOn(double x, double y) {
+        x = x + RobotUtils.poseXOffset;
+        y = y + RobotUtils.poseYOffset;
+
         double distance = getDistanceToGoal(x, y);
         double targetVelocity = calculateVelocity(distance);
 
@@ -79,7 +82,7 @@ public class Shooter {
     }
     public double calculateVelocity(double distance) {
         double y = MathFunctions.clamp(
-                0.00877849 * Math.pow(distance, 2) + 3.87391 * distance + 1100.8993,
+                -0.00000669801 * Math.pow(distance, 4) + 0.00236942 * Math.pow(distance, 3) - 0.252177 * Math.pow(distance, 2) + 11.73696 * distance + 1026.80806,
                 LOW_VELOCITY,
                 HIGH_VELOCITY);
         return y;

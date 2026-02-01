@@ -22,10 +22,10 @@ public class RedNearAuto extends OpMode {
     private final Pose startPose = new Pose(109.80561555075593, 137.69330453563714, Math.toRadians(0)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(95.66689199215207, 107.86764051242314, Math.toRadians(38)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose intake1Pose = new Pose(95.2159827213823, 59.761776004484545, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(132.6564885496183, 59.221374045801525, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose pickup1Pose = new Pose(133.1752905462905, 59.221374045801525, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
     private final Pose revPose = new Pose(112.62595419847328, 59.221374045801525, Math.toRadians(0)); // Intake (First Set) of Artifacts from the Spike Mark.
     private final Pose intake2Pose = new Pose(95.2159827213823, 83.19083969465649, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(126.04580152671755, 83.12213740458016, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
+    private final Pose pickup2Pose = new Pose(127.00420418894717, 83.12213740458016, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
     private final Pose parkPose = new Pose(120.42762063227953, 96.16971713810318, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     Pose currentPose;
@@ -138,6 +138,7 @@ public class RedNearAuto extends OpMode {
             case 5:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
+                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
@@ -173,6 +174,7 @@ public class RedNearAuto extends OpMode {
             case 8:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
+                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
@@ -193,6 +195,7 @@ public class RedNearAuto extends OpMode {
                 break;
             case 9:
                 if (!follower.isBusy()) {
+                    turret.reset();
                     pathTimer.resetTimer();
                     setPathState(-1);
                 }
@@ -236,9 +239,11 @@ public class RedNearAuto extends OpMode {
 
         turret = new Turret(this);
         turret.init();
+        turret.setAlliance(true); // red
 
         shooter = new Shooter(this);
         shooter.init();
+        shooter.setAlliance(true); // red
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();

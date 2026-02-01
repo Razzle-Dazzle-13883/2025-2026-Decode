@@ -131,9 +131,9 @@ public class Turret {
 
     // reset turret back to start position
     public void reset() {
-        turretMotor.setTargetPosition(0);
+        turretMotor.setTargetPosition(-turretMotor.getCurrentPosition());
         turretMotor.setMode(DcMotor.RunMode.RUN_TO_POSITION);
-        turretMotor.setPower(0);
+        turretMotor.setPower(this.turretAutoTurnPower);
         turretMotor.setMode(DcMotor.RunMode.STOP_AND_RESET_ENCODER);
     }
 
@@ -144,7 +144,8 @@ public class Turret {
     public void autoTurn(double x, double y, double robotHeadingInDegree) {
         double turnInDegree = 0.0;
         boolean doAutoTurn = false;
-
+        x = x + RobotUtils.poseXOffset;
+        y = y + RobotUtils.poseYOffset;
         // normalize to [0, 360)
         double normalizedRobotHeadingInDegree = (robotHeadingInDegree % 360 + 360) % 360;
 
@@ -157,7 +158,7 @@ public class Turret {
 
         // when bot facing the goal, turret auto turns; otherwise no turn
         if (isRedAlliance) { // RED GOAL
-            double turnInRadians = Math.atan((144.0 - y) / (144.0 - x)); // 0 to pi/2
+            double turnInRadians = Math.atan((144.0 - Math.abs(y)) / (144.0 - Math.abs(x))); // 0 to pi/2
             if (!Double.isNaN(turnInRadians)) {
                 if (normalizedRobotHeadingInDegree >= 0.0 && normalizedRobotHeadingInDegree <= 135.0) {
                     turnInDegree = Math.toDegrees(turnInRadians) - normalizedRobotHeadingInDegree;
@@ -170,10 +171,10 @@ public class Turret {
             }
         } else { // BLUE GOAL
             // when bot facing the goal, turret auto turns; otherwise no turn
-            double turnInRadians = Math.atan((144.0 - y) / (x - 0.0)); // 0 to pi/2
+            double turnInRadians = Math.atan((144.0 - Math.abs(y)) / (Math.abs(x) - 0.0)); // 0 to pi/2
             if (!Double.isNaN(turnInRadians)) {
                 myOpMode.telemetry.addData("Turret atan: ", Math.toDegrees(turnInRadians));
-                if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 225.0) {
+                if (normalizedRobotHeadingInDegree >= 45.0 && normalizedRobotHeadingInDegree <= 180.0) { // wire
                     turnInDegree = (180 - normalizedRobotHeadingInDegree) - Math.toDegrees(turnInRadians);
                     doAutoTurn = true;
                 }

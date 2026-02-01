@@ -176,10 +176,7 @@ public class FieldTeleOp extends OpMode {
 
     @Override
     public void init_loop() {
-        initStartingPose();
-
         telemetry.addData("Auto was", autonomusOpMode.toString());
-        telemetry.addData("Starting Pose", startingPose.toString());
         telemetry.addLine("Press Left Bumper to choose which auto it ran...");
 
         if (gamepad1.leftBumperWasPressed()) {
@@ -199,14 +196,23 @@ public class FieldTeleOp extends OpMode {
 
     @Override
     public void start() {
+        initStartingPose();
+        follower.setStartingPose(startingPose);
+        follower.update();
         //The parameter controls whether the Follower should use break mode on the motors (using it is recommended).
         //In order to use float mode, add .useBrakeModeInTeleOp(true); to your Drivetrain Constants in Constant.java (for Mecanum)
         //If you don't pass anything in, it uses the default (false)
         follower.startTeleopDrive();
+
         boolean isRedAlliance = false;
         isRedAlliance = (autonomusOpMode == AutonomusOpMode.RED_NEAR || autonomusOpMode == AutonomusOpMode.RED_FAR);
         turret.setAlliance(isRedAlliance);
         shooter.setAlliance(isRedAlliance);
+
+        telemetry.addData("Auto was", autonomusOpMode.toString());
+        telemetry.addData("startingPosition", startingPose.toString());
+        telemetry.addLine("Start...");
+        telemetry.update();
     }
     
     /**
