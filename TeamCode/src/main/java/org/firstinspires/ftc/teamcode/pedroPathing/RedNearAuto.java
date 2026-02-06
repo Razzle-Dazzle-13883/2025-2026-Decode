@@ -21,16 +21,13 @@ public class RedNearAuto extends OpMode {
 
     private final Pose startPose = new Pose(109.80561555075593, 137.69330453563714, Math.toRadians(0)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(95.66689199215207, 107.86764051242314, Math.toRadians(38)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose intake1Pose = new Pose(95.2159827213823, 59.761776004484545, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(133.1752905462905, 59.221374045801525, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose revPose = new Pose(112.62595419847328, 59.221374045801525, Math.toRadians(0)); // Intake (First Set) of Artifacts from the Spike Mark.
-    private final Pose intake2Pose = new Pose(95.2159827213823, 83.19083969465649, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(127.00420418894717, 83.12213740458016, Math.toRadians(0)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose parkPose = new Pose(120.42762063227953, 96.16971713810318, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+    private final Pose intake1Pose = new Pose(95.2159827213823, 83.19083969465649, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(126.93297308776854, 83.57035997026793, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose parkPose = new Pose(125.97217928902626, 100.37557959814526, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     Pose currentPose;
     private Path scorePreload;
-    private PathChain readyIntake1, intakePickup1, reverse, scorePickup1, readyIntake2, intakePickup2, scorePickup2, park;
+    private PathChain readyIntake1, intakePickup1, scorePickup1, park;
 
     public void buildPaths() {
         scorePreload = new Path(new BezierLine(startPose, scorePose));
@@ -47,33 +44,10 @@ public class RedNearAuto extends OpMode {
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
-        /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        reverse = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, revPose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), revPose.getHeading())
-                .build();
-
         /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(revPose, scorePose))
-                .setLinearHeadingInterpolation(revPose.getHeading(), scorePose.getHeading())
-                .build();
-
-        readyIntake2 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, intake2Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake2Pose.getHeading())
-                .build();
-
-        /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        intakePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(intake2Pose, pickup2Pose))
-                .setLinearHeadingInterpolation(intake2Pose.getHeading(), pickup2Pose.getHeading())
-                .build();
-
-        /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(pickup1Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
                 .build();
 
         /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
@@ -96,7 +70,7 @@ public class RedNearAuto extends OpMode {
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
                     robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
@@ -120,58 +94,15 @@ public class RedNearAuto extends OpMode {
                 }
                 break;
             case 3:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
+                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    robot.intakeOff();
                     pathTimer.resetTimer();
-                    follower.followPath(reverse, true);
+                    follower.followPath(scorePickup1, true);
                     setPathState(4);
                 }
                 break;
             case 4:
-                if (!follower.isBusy()) {
-                    robot.intakeOff();
-                    pathTimer.resetTimer();
-                    follower.followPath(scorePickup1, true);
-                    setPathState(5);
-                }
-                break;
-            case 5:
-                if (!follower.isBusy()) {
-                    currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
-                    pathTimer.resetTimer();
-
-                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-                    robot.kickerUp();
-                    robot.intakeShoot();
-                    pathTimer.resetTimer();
-
-                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
-                    shooter.shooterIdle();
-                    robot.kickerDown();
-                    pathTimer.resetTimer();
-
-                    follower.followPath(readyIntake2, true);
-                    setPathState(6);
-                }
-                break;
-            case 6:
-                if (!follower.isBusy()) {
-                    pathTimer.resetTimer();
-                    follower.followPath(intakePickup2, true);
-                    setPathState(7);
-                }
-                break;
-            case 7:
-                if (!follower.isBusy()) {
-                    robot.intakeOff();
-                    pathTimer.resetTimer();
-                    follower.followPath(scorePickup2, true);
-                    setPathState(8);
-                }
-                break;
-            case 8:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
                     turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
@@ -190,10 +121,10 @@ public class RedNearAuto extends OpMode {
                     pathTimer.resetTimer();
 
                     follower.followPath(park, true);
-                    setPathState(9);
+                    setPathState(5);
                 }
                 break;
-            case 9:
+            case 5:
                 if (!follower.isBusy()) {
                     turret.reset();
                     pathTimer.resetTimer();

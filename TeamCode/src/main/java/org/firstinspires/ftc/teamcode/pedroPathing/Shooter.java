@@ -82,7 +82,7 @@ public class Shooter {
     }
     public double calculateVelocity(double distance) {
         double y = MathFunctions.clamp(
-                -0.00000669801 * Math.pow(distance, 4) + 0.00236942 * Math.pow(distance, 3) - 0.252177 * Math.pow(distance, 2) + 11.73696 * distance + 1026.80806,
+                0.0151453 * Math.pow(distance, 2) + 3.8176 * distance + 914.97642,
                 LOW_VELOCITY,
                 HIGH_VELOCITY);
         return y;

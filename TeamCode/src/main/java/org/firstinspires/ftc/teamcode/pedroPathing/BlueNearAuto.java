@@ -19,18 +19,15 @@ public class BlueNearAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(34.571006565730976, 137.21410320452233, Math.toRadians(0)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(47.7467588806712, 110.26364716799718, Math.toRadians(142)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose intake1Pose = new Pose(47.53545027545884, 59.52217533892712, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(10.699749780899495, 59.46097471135893, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose revPose = new Pose(32.12013057118542, 59.46097471135893, Math.toRadians(180)); // Intake (First Set) of Artifacts from the Spike Mark.
-    private final Pose intake2Pose = new Pose(47.53545027545884, 84.62844368800091, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(16.787898032541186, 84.3201407323672, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose parkPose = new Pose(21.951747088186348, 98.56572379367722, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(34.35584739001405, 137.69330453563714, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(47.81526911734527, 113.8769140827477, Math.toRadians(142)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose intake1Pose = new Pose(54.041330480269465, 90.53550739171988, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(18.0983517585568, 90.69246197954148, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose parkPose = new Pose(24.037094281298288, 96.81452859350847, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     Pose currentPose;
     private Path scorePreload;
-    private PathChain readyIntake1, intakePickup1, reverse, scorePickup1, readyIntake2, intakePickup2, scorePickup2, park;
+    private PathChain readyIntake1, intakePickup1, scorePickup1, park;
 
     public void buildPaths() {
         scorePreload = new Path(new BezierLine(startPose, scorePose));
@@ -47,33 +44,10 @@ public class BlueNearAuto extends OpMode {
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
-        /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        reverse = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, revPose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), revPose.getHeading())
-                .build();
-
         /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup1 = follower.pathBuilder()
-                .addPath(new BezierLine(revPose, scorePose))
-                .setLinearHeadingInterpolation(revPose.getHeading(), scorePose.getHeading())
-                .build();
-
-        readyIntake2 = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, intake2Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake2Pose.getHeading())
-                .build();
-
-        /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        intakePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(intake2Pose, pickup2Pose))
-                .setLinearHeadingInterpolation(intake2Pose.getHeading(), pickup2Pose.getHeading())
-                .build();
-
-        /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup2Pose, scorePose))
-                .setLinearHeadingInterpolation(pickup2Pose.getHeading(), scorePose.getHeading())
+                .addPath(new BezierLine(pickup1Pose, scorePose))
+                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
                 .build();
 
         /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
@@ -93,23 +67,23 @@ public class BlueNearAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
                     robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
                     while (pathTimer.getElapsedTimeSeconds() <= 2) {}
-                    shooter.shooterIdle();
+                    robot.shooterOff();
+                    robot.intakeOff();
                     robot.kickerDown();
                     pathTimer.resetTimer();
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(readyIntake1, true);
-                    setPathState(2);
+                    follower.followPath(park, true);
+                    setPathState(5);
                 }
                 break;
             case 2:
@@ -117,62 +91,19 @@ public class BlueNearAuto extends OpMode {
                 if (!follower.isBusy()) {
                     pathTimer.resetTimer();
                     follower.followPath(intakePickup1, true);
-                    setPathState(3);
+                    setPathState(-1);
                 }
                 break;
             case 3:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
-                    pathTimer.resetTimer();
-                    follower.followPath(reverse, true);
-                    setPathState(4);
-                }
-                break;
-            case 4:
-                if (!follower.isBusy()) {
+                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
                     robot.intakeOff();
                     pathTimer.resetTimer();
                     follower.followPath(scorePickup1, true);
-                    setPathState(5);
+                    setPathState(-1);
                 }
                 break;
-            case 5:
-                if (!follower.isBusy()) {
-                    currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
-                    pathTimer.resetTimer();
-
-                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-                    robot.kickerUp();
-                    robot.intakeShoot();
-                    pathTimer.resetTimer();
-
-                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
-                    shooter.shooterIdle();
-                    robot.kickerDown();
-                    pathTimer.resetTimer();
-
-                    follower.followPath(readyIntake2, true);
-                    setPathState(6);
-                }
-                break;
-            case 6:
-                if (!follower.isBusy()) {
-                    pathTimer.resetTimer();
-                    follower.followPath(intakePickup2, true);
-                    setPathState(7);
-                }
-                break;
-            case 7:
-                if (!follower.isBusy()) {
-                    robot.intakeOff();
-                    pathTimer.resetTimer();
-                    follower.followPath(scorePickup2, true);
-                    setPathState(8);
-                }
-                break;
-            case 8:
+            case 4:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
@@ -190,10 +121,10 @@ public class BlueNearAuto extends OpMode {
                     pathTimer.resetTimer();
 
                     follower.followPath(park, true);
-                    setPathState(9);
+                    setPathState(-1);
                 }
                 break;
-            case 9:
+            case 5:
                 if (!follower.isBusy()) {
                     turret.reset();
                     pathTimer.resetTimer();

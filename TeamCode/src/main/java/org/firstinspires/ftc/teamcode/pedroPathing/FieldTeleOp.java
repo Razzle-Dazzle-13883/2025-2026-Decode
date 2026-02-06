@@ -778,11 +778,11 @@ public class FieldTeleOp extends OpMode {
 
     private void initStartingPose() {
         if (autonomusOpMode == AutonomusOpMode.BLUE_NEAR) {
-            startingPose = new Pose(21.952, 98.566);
+            startingPose = new Pose(24.037, 96.815);
         } else if (autonomusOpMode == AutonomusOpMode.BLUE_FAR) {
             startingPose = new Pose(61.674, 35.700);
         } else if (autonomusOpMode == AutonomusOpMode.RED_NEAR) {
-            startingPose = new Pose(120.427, 96.169);
+            startingPose = new Pose(125.972, 100.376);
         } else if (autonomusOpMode == AutonomusOpMode.RED_FAR) {
             startingPose = new Pose(83.478, 35.461);
         } else {

@@ -15,8 +15,8 @@ import com.qualcomm.robotcore.hardware.HardwareMap;
 
 public class Constants {
     public static FollowerConstants followerConstants = new FollowerConstants()
-           .forwardZeroPowerAcceleration(-44.57742177363729)
-           .lateralZeroPowerAcceleration(-47.238565389048354)
+           .forwardZeroPowerAcceleration(-47.9501683617169)
+           .lateralZeroPowerAcceleration(-59.0085110686391)
             .translationalPIDFCoefficients(new PIDFCoefficients(0.1, 0, 0.02, 0.03))
             .headingPIDFCoefficients(new PIDFCoefficients(1.8, 0, 0.06, 0.03))
             .drivePIDFCoefficients(new FilteredPIDFCoefficients(0.15,0,0.00001,0.6,0.01))
@@ -32,7 +32,7 @@ public class Constants {
             .forwardEncoderDirection(Encoder.FORWARD)
             .strafeEncoderDirection(Encoder.FORWARD)
             .forwardTicksToInches(0.0005482139147039806)
-            .strafeTicksToInches(0.0005347471673772748)
+            .strafeTicksToInches(0.0005473507745322782)
             .IMU_HardwareMapName("imu")
             .IMU_Orientation(
                     new RevHubOrientationOnRobot(
@@ -44,8 +44,8 @@ public class Constants {
 
     public static MecanumConstants driveConstants = new MecanumConstants()
             .maxPower(1)
-            .xVelocity(57.58129488591773)
-            .yVelocity(30.15516967695229)
+            .xVelocity(64.28393949041086)
+            .yVelocity(29.486084977645323)
             // Match hardwareMap names defined in Robot.initHardware()
             .rightFrontMotorName("frontRightMotor")
             .rightRearMotorName("backRightMotor")

@@ -19,7 +19,7 @@ public class BlueFarAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(57.26502703826955, 6.229617304492507, Math.toRadians(0)); // Start Pose of our robot.
+    private final Pose startPose = new Pose(57.26502703826955, 6.229617304492507, Math.toRadians(180)); // Start Pose of our robot.
     private final Pose scorePose = new Pose(62.36239947967287, 15.621384272822468, Math.toRadians(118)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose intake1Pose = new Pose(61.6738768718802, 35.70049916805324, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
     private final Pose pickup1Pose = new Pose(11.158069883527462, 35.77038269550749, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
@@ -99,23 +99,23 @@ public class BlueFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
                     robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
-                    shooter.shooterIdle();
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
+                    robot.shooterOff();
+                    robot.intakeOff();
                     robot.kickerDown();
                     pathTimer.resetTimer();
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(readyIntake1, true);
-                    setPathState(2);
+                    follower.followPath(park, true);
+                    setPathState(5);
                 }
                 break;
             case 2:
@@ -123,7 +123,7 @@ public class BlueFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     pathTimer.resetTimer();
                     follower.followPath(intakePickup1, true);
-                    setPathState(3);
+                    setPathState(-1);
                 }
                 break;
             case 3:
@@ -133,13 +133,12 @@ public class BlueFarAuto extends OpMode {
                     robot.intakeOff();
                     pathTimer.resetTimer();
                     follower.followPath(scorePickup1, true);
-                    setPathState(4);
+                    setPathState(-1);
                 }
                 break;
             case 4:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
@@ -155,7 +154,7 @@ public class BlueFarAuto extends OpMode {
                     pathTimer.resetTimer();
 
                     follower.followPath(park, true);
-                    setPathState(5);
+                    setPathState(-1);
                 }
                 break;
             case 5:

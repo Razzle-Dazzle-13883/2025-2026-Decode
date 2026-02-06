@@ -37,7 +37,7 @@ public class Turret {
     private static final double TICKS_PER_DEGREE = 384.5 // ticks per rotation per Yellow Jacket 5203 spec
             * 121.0 / 57.0 // This is the external gear reduction, a 57T pinion gear that drives a 127T hub-mount gear
             * 1/360.0; // we want ticks per degree, not per rotation
-    private double turretAutoTurnPower = 1.0;
+    private double turretAutoTurnPower = 0.8;
     private boolean isRedAlliance = false; // default to Blue
 
     public Turret(OpMode opMode) {
@@ -182,11 +182,11 @@ public class Turret {
         }
 
         if (doAutoTurn) {
-            if (turnInDegree > 90.0) {
-                turnInDegree = 90.0;
+            if (turnInDegree > 75.0) {
+                turnInDegree = 75.0;
             }
-            if (turnInDegree < -90.0) {
-                turnInDegree = -90.0;
+            if (turnInDegree < -75.0) {
+                turnInDegree = -75.0;
             }
             int turnInTicks = (int) (turnInDegree * TICKS_PER_DEGREE);
 

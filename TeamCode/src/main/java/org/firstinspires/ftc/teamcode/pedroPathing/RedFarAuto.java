@@ -102,7 +102,7 @@ public class RedFarAuto extends OpMode {
                     shooter.shooterOn(currentPose.getX(), currentPose.getY());
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
                     robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
