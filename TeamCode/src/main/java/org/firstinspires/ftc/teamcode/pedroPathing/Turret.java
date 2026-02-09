@@ -144,8 +144,13 @@ public class Turret {
     public void autoTurn(double x, double y, double robotHeadingInDegree) {
         double turnInDegree = 0.0;
         boolean doAutoTurn = false;
-        x = x + RobotUtils.poseXOffset;
-        y = y + RobotUtils.poseYOffset;
+        if (isRedAlliance) {
+            x = x + RobotUtils.poseXOffsetRed;
+            y = y + RobotUtils.poseYOffsetRed;
+        } else {
+            x = x + RobotUtils.poseXOffsetBlue;
+            y = y + RobotUtils.poseYOffsetBlue;
+        }
         // normalize to [0, 360)
         double normalizedRobotHeadingInDegree = (robotHeadingInDegree % 360 + 360) % 360;
 
@@ -158,7 +163,7 @@ public class Turret {
 
         // when bot facing the goal, turret auto turns; otherwise no turn
         if (isRedAlliance) { // RED GOAL
-            double turnInRadians = Math.atan((144.0 - Math.abs(y)) / (144.0 - Math.abs(x))); // 0 to pi/2
+            double turnInRadians = Math.atan(Math.abs((144.0 - Math.abs(y)) / (144.0 - Math.abs(x)))); // 0 to pi/2
             if (!Double.isNaN(turnInRadians)) {
                 if (normalizedRobotHeadingInDegree >= 0.0 && normalizedRobotHeadingInDegree <= 135.0) {
                     turnInDegree = Math.toDegrees(turnInRadians) - normalizedRobotHeadingInDegree;

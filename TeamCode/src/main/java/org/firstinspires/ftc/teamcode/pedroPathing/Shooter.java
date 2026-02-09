@@ -70,8 +70,13 @@ public class Shooter {
         myOpMode.telemetry.addData("shooterIdle Velocity: ", LOW_VELOCITY);
     }
     public void shooterOn(double x, double y) {
-        x = x + RobotUtils.poseXOffset;
-        y = y + RobotUtils.poseYOffset;
+        if (isRedAlliance) {
+            x = x + RobotUtils.poseXOffsetRed;
+            y = y + RobotUtils.poseYOffsetRed;
+        } else {
+            x = x + RobotUtils.poseXOffsetBlue;
+            y = y + RobotUtils.poseYOffsetBlue;
+        }
 
         double distance = getDistanceToGoal(x, y);
         double targetVelocity = calculateVelocity(distance);
@@ -81,10 +86,18 @@ public class Shooter {
         this.leftShooterMotor.setVelocity(targetVelocity);
     }
     public double calculateVelocity(double distance) {
-        double y = MathFunctions.clamp(
-                0.0151453 * Math.pow(distance, 2) + 3.8176 * distance + 914.97642,
-                LOW_VELOCITY,
-                HIGH_VELOCITY);
+        double y = LOW_VELOCITY;
+        if (this.isRedAlliance) {
+            y = MathFunctions.clamp(
+                    0.0151453 * Math.pow(distance, 2) + 3.8176 * distance + 914.97642,
+                    LOW_VELOCITY,
+                    HIGH_VELOCITY);
+        } else {
+            y = MathFunctions.clamp(
+                    0.00584869 * Math.pow(distance, 2) + 3.23531 * distance + 858.96192,
+                    LOW_VELOCITY,
+                    HIGH_VELOCITY);
+        }
         return y;
     }
 
