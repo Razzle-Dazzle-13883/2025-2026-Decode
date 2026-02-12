@@ -56,12 +56,6 @@ public class Turret {
                 .setTagFamily(AprilTagProcessor.TagFamily.TAG_36h11)
                 .setDrawTagOutline(true)
                 .build();
-/*
-        visionPortal = new VisionPortal.Builder()
-                .setCamera(myOpMode.hardwareMap.get(WebcamName.class, "Webcam 1"))
-                .addProcessor(aprilTag)
-                .build();
- */
     }
 
     public void followTag() {
@@ -107,26 +101,6 @@ public class Turret {
      */
     public void turretSetPower(double power) {
         turretMotor.setPower(power);
-    }
-
-    /**
-     * Get turret position in degrees relative to robot
-     * Uses encoder if available, otherwise returns 0
-     * @return Turret position in degrees (0 = forward relative to robot)
-     */
-    public double getTurretPositionDegrees() {
-        // Gear ratio: 121 teeth (turret) / 47 teeth (motor) = 2.5745 motor rotations per 360° turret rotation
-        // Most FTC motors have 28 counts per revolution (REV HD Hex)
-        // Adjust MOTOR_COUNTS_PER_REVOLUTION if using different motor
-        final double MOTOR_COUNTS_PER_REVOLUTION = 28.0;
-        final double TURRET_GEAR_TEETH = 121.0;
-        final double MOTOR_GEAR_TEETH = 47.0;
-        final double TURRET_GEAR_RATIO = TURRET_GEAR_TEETH / MOTOR_GEAR_TEETH; // 2.5745
-        final double TURRET_DEGREES_PER_MOTOR_ROTATION = 360.0 / TURRET_GEAR_RATIO; // ~139.84 degrees
-        final double TURRET_DEGREES_PER_ENCODER_TICK = TURRET_DEGREES_PER_MOTOR_ROTATION / MOTOR_COUNTS_PER_REVOLUTION; // ~4.994 degrees per tick
-
-        int encoderTicks = turretMotor.getCurrentPosition();
-        return encoderTicks * TURRET_DEGREES_PER_ENCODER_TICK;
     }
 
     // reset turret back to start position
@@ -187,11 +161,11 @@ public class Turret {
         }
 
         if (doAutoTurn) {
-            if (turnInDegree > 75.0) {
-                turnInDegree = 75.0;
+            if (turnInDegree > 80.0) {
+                turnInDegree = 80.0;
             }
-            if (turnInDegree < -75.0) {
-                turnInDegree = -75.0;
+            if (turnInDegree < -80.0) {
+                turnInDegree = -80.0;
             }
             int turnInTicks = (int) (turnInDegree * TICKS_PER_DEGREE);
 

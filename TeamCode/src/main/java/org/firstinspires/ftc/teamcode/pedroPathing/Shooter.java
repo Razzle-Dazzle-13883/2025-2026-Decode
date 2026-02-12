@@ -13,7 +13,6 @@ public class Shooter {
     public static final double TICKS_PER_SECOND = (RPM / 60) * TICKS_PER_REV;
 
     private DcMotorEx leftShooterMotor;
-    //private DcMotorEx rightShooterMotor;
     // for PIDFs tuning
     private static final double F = -40.8;
     private static final double P = 10.2;
@@ -22,23 +21,20 @@ public class Shooter {
     private OpMode myOpMode;
     private boolean isRedAlliance = false; // default to Blue
     private double distanceToGoalOffset = 8.0; // offset the measurment with PetraPathing X/Y
+
     public Shooter(OpMode opMode){
         this.myOpMode = opMode;
     }
 
     public void init() {
         leftShooterMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "leftShooterMotor");
-        //rightShooterMotor = myOpMode.hardwareMap.get(DcMotorEx.class, "rightShooterMotor");
 
         leftShooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
-        //rightShooterMotor.setMode(DcMotor.RunMode.RUN_USING_ENCODER);
 
         leftShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
-        //rightShooterMotor.setZeroPowerBehavior(DcMotor.ZeroPowerBehavior.BRAKE);
 
         // Reverse both shooter motors
         leftShooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
-        //rightShooterMotor.setDirection(DcMotorSimple.Direction.FORWARD);
 
         PIDFCoefficients pidfCoefficients = new PIDFCoefficients(P, 0, 0, F);
         this.setPIDFCoefficients(pidfCoefficients);
@@ -46,20 +42,18 @@ public class Shooter {
 
     public void setVelocity(double velocity) {
         leftShooterMotor.setVelocity(velocity);
-        // rightShooterMotor.setVelocity(velocity);
+    }
+
+    public double getVelocity() {
+        return leftShooterMotor.getVelocity();
     }
 
     public double getLeftMotorVelocity() {
         return leftShooterMotor.getVelocity();
     }
 
-    //public double getRightMotorVelocity() {
-        //return rightShooterMotor.getVelocity();
-   //}
-
     public void setPIDFCoefficients(PIDFCoefficients pidfCoefficients) {
         leftShooterMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
-        // rightShooterMotor.setPIDFCoefficients(DcMotor.RunMode.RUN_USING_ENCODER, pidfCoefficients);
     }
     public void setAlliance(boolean isRedAlliance) {
         this.isRedAlliance = isRedAlliance;
@@ -69,7 +63,7 @@ public class Shooter {
         this.leftShooterMotor.setVelocity(LOW_VELOCITY);
         myOpMode.telemetry.addData("shooterIdle Velocity: ", LOW_VELOCITY);
     }
-    public void shooterOn(double x, double y) {
+    public double shooterOn(double x, double y) {
         if (isRedAlliance) {
             x = x + RobotUtils.poseXOffsetRed;
             y = y + RobotUtils.poseYOffsetRed;
@@ -84,6 +78,8 @@ public class Shooter {
         myOpMode.telemetry.addData("Shooting Velocity: ", targetVelocity);
 
         this.leftShooterMotor.setVelocity(targetVelocity);
+
+        return targetVelocity;
     }
     public double calculateVelocity(double distance) {
         double y = LOW_VELOCITY;
