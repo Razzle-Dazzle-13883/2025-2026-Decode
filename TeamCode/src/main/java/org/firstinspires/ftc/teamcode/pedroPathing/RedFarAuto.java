@@ -68,7 +68,7 @@ public class RedFarAuto extends OpMode {
                     /* Score Preload */
                     currentPose = follower.getPose();
                     //shooter.shooterOn(currentPose.getX(), currentPose.getY());
-                    shooter.setVelocity(1280);
+                    shooter.setVelocity(1320);
                     robot.kickerUp();
                     pathTimer.resetTimer();
 
@@ -109,7 +109,7 @@ public class RedFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
                     //shooter.shooterOn(currentPose.getX(), currentPose.getY());
-                    shooter.setVelocity(1280);
+                    shooter.setVelocity(1320);
                     robot.kickerUp();
                     pathTimer.resetTimer();
 
