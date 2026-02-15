@@ -19,11 +19,11 @@ public class BlueNearAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(34.35584739001405, 137.69330453563714, Math.toRadians(180)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(47.81526911734527, 113.8769140827477, Math.toRadians(142)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose intake1Pose = new Pose(54.041330480269465, 90.53550739171988, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(18.0983517585568, 90.69246197954148, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose parkPose = new Pose(24.037094281298288, 96.81452859350847, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(34.188562596599695, 137.31066460587326, Math.toRadians(180)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(39.30757341576508, 105.21792890262749, Math.toRadians(132)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose intake1Pose = new Pose(48.737248840803716, 85.48377125193201, Math.toRadians(180)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(17.511591962905722, 85.64451313755795, Math.toRadians(180)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose parkPose = new Pose(23.754250386398773, 96.7774343122102, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     Pose currentPose;
     private Path scorePreload;
@@ -67,50 +67,53 @@ public class BlueNearAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    // shooter.shooterOn(currentPose.getX() - 1.5 * RobotUtils.poseXOffsetBlue, currentPose.getY() - 1.5 * RobotUtils.poseYOffsetBlue);
+                    shooter.setVelocity(975);
+                    robot.kickerUp();
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
-                    robot.kickerUp();
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
                     while (pathTimer.getElapsedTimeSeconds() <= 2) {}
-                    robot.shooterOff();
-                    robot.intakeOff();
+                    shooter.shooterIdle();
                     robot.kickerDown();
                     pathTimer.resetTimer();
 
                     /* Since this is a pathChain, we can have Pedro hold the end point while we are grabbing the sample */
-                    follower.followPath(park, true);
-                    setPathState(5);
+                    follower.followPath(readyIntake1, true);
+                    setPathState(2);
                 }
                 break;
             case 2:
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy()) {
                     pathTimer.resetTimer();
+                    follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER_INTAKE);
                     follower.followPath(intakePickup1, true);
-                    setPathState(-1);
+                    setPathState(3);
                 }
                 break;
             case 3:
                 if (!follower.isBusy()) {
-                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     robot.intakeOff();
                     pathTimer.resetTimer();
+                    follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER);
                     follower.followPath(scorePickup1, true);
-                    setPathState(-1);
+                    setPathState(4);
                 }
                 break;
             case 4:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    // shooter.shooterOn(currentPose.getX() - 1.5 * RobotUtils.poseXOffsetBlue, currentPose.getY() - 1.5 * RobotUtils.poseYOffsetBlue);
+                    shooter.setVelocity(975);
+                    robot.kickerUp();
                     pathTimer.resetTimer();
 
                     while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-                    robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
@@ -121,12 +124,11 @@ public class BlueNearAuto extends OpMode {
                     pathTimer.resetTimer();
 
                     follower.followPath(park, true);
-                    setPathState(-1);
+                    setPathState(5);
                 }
                 break;
             case 5:
                 if (!follower.isBusy()) {
-                    turret.reset();
                     pathTimer.resetTimer();
                     setPathState(-1);
                 }
@@ -170,11 +172,11 @@ public class BlueNearAuto extends OpMode {
 
         turret = new Turret(this);
         turret.init();
-        turret.setAlliance(false); // blue
+        turret.setAlliance(true); // red
 
         shooter = new Shooter(this);
         shooter.init();
-        shooter.setAlliance(false); // blue
+        shooter.setAlliance(true); // red
 
         pathTimer = new Timer();
         opmodeTimer = new Timer();
@@ -183,7 +185,7 @@ public class BlueNearAuto extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
-
+        follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER);
     }
 
     /**

@@ -19,11 +19,11 @@ public class RedNearAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(109.80561555075593, 137.69330453563714, Math.toRadians(0)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(95.66689199215207, 107.86764051242314, Math.toRadians(38)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose intake1Pose = new Pose(95.2159827213823, 83.19083969465649, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(126.93297308776854, 83.57035997026793, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-    private final Pose parkPose = new Pose(125.97217928902626, 100.37557959814526, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
+    private final Pose startPose = new Pose(108.52550231839258, 137.31066460587323, Math.toRadians(0)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(110.75115919629057, 111.44976816074188, Math.toRadians(48)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose intake1Pose = new Pose(95.34930448222565, 87.01081916537868, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(126.45904173106646, 86.83771251931996, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose parkPose = new Pose(122.41112828438948, 95.92581143740341, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     Pose currentPose;
     private Path scorePreload;
@@ -67,11 +67,12 @@ public class RedNearAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    //shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    shooter.setVelocity(975);
+                    robot.kickerUp();
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
-                    robot.kickerUp();
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
@@ -89,15 +90,17 @@ public class RedNearAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy()) {
                     pathTimer.resetTimer();
+                    follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER_INTAKE);
                     follower.followPath(intakePickup1, true);
                     setPathState(3);
                 }
                 break;
             case 3:
                 if (!follower.isBusy()) {
-                    while (pathTimer.getElapsedTimeSeconds() <= 1) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     robot.intakeOff();
                     pathTimer.resetTimer();
+                    follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER);
                     follower.followPath(scorePickup1, true);
                     setPathState(4);
                 }
@@ -105,12 +108,12 @@ public class RedNearAuto extends OpMode {
             case 4:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    //shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    shooter.setVelocity(975);
+                    robot.kickerUp();
                     pathTimer.resetTimer();
 
                     while (pathTimer.getElapsedTimeSeconds() <= 1) {}
-                    robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
@@ -126,7 +129,6 @@ public class RedNearAuto extends OpMode {
                 break;
             case 5:
                 if (!follower.isBusy()) {
-                    turret.reset();
                     pathTimer.resetTimer();
                     setPathState(-1);
                 }
@@ -183,7 +185,7 @@ public class RedNearAuto extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
-
+        follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER);
     }
 
     /**

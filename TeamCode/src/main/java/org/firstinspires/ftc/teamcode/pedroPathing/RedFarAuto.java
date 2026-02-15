@@ -19,21 +19,15 @@ public class RedFarAuto extends OpMode {
     private Timer pathTimer, actionTimer, opmodeTimer;
     private int pathState;
 
-    private final Pose startPose = new Pose(86.73590890183029, 5.990016638935103, Math.toRadians(0)); // Start Pose of our robot.
-    private final Pose scorePose = new Pose(83.44725804872445, 19.93419625285574, Math.toRadians(62)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose intake1Pose = new Pose(83.477537437604, 35.46089850249584, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
-    private final Pose pickup1Pose = new Pose(132.15640599001665, 35.77038269550749, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
-
-    /*
-    private final Pose revPose = new Pose(32.12013057118542, 59.46097471135893, Math.toRadians(180)); // Intake (First Set) of Artifacts from the Spike Mark.
-    private final Pose intake2Pose = new Pose(47.53545027545884, 84.62844368800091, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose pickup2Pose = new Pose(17.746300694770802, 84.3201407323672, Math.toRadians(180)); // Middle (Second Set) of Artifacts from the Spike Mark.
-    private final Pose parkPose = new Pose(21.951747088186348, 98.56572379367722, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
-     */
+    private final Pose startPose = new Pose(86.93663060278207, 6.219474497681597, Math.toRadians(0)); // Start Pose of our robot.
+    private final Pose scorePose = new Pose(84.26584234930446, 19.085007727975242, Math.toRadians(66)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose intake1Pose = new Pose(93.8191653786708, 35.20710973724893, Math.toRadians(0)); // Scoring Pose of our robot. It is facing the goal at a 135 degree angle.
+    private final Pose pickup1Pose = new Pose(131.51622874806802, 35.34775888717157, Math.toRadians(0)); // Highest (First Set) of Artifacts from the Spike Mark.
+    private final Pose parkPose = new Pose(96.66306027820714, 24.23338485316846, Math.toRadians(0)); // Lowest (Third Set) of Artifacts from the Spike Mark.
 
     Pose currentPose;
     private Path scorePreload;
-    private PathChain readyIntake1, intakePickup1, scorePickup1, park, readyIntake2, intakePickup2, scorePickup2, diddy;
+    private PathChain readyIntake1, intakePickup1, scorePickup1, park;
 
     public void buildPaths() {
         scorePreload = new Path(new BezierLine(startPose, scorePose));
@@ -50,41 +44,16 @@ public class RedFarAuto extends OpMode {
                 .setLinearHeadingInterpolation(intake1Pose.getHeading(), pickup1Pose.getHeading())
                 .build();
 
-
-        /* This is our scorePickup1 PathChain. We are using a single path with a BezierLine, which is a straight line. */
+        /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
         scorePickup1 = follower.pathBuilder()
                 .addPath(new BezierLine(pickup1Pose, scorePose))
                 .setLinearHeadingInterpolation(pickup1Pose.getHeading(), scorePose.getHeading())
                 .build();
 
-        /* This is our grabPickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        park = follower.pathBuilder()
-                .addPath(new BezierLine(scorePose, intake1Pose))
-                .setLinearHeadingInterpolation(scorePose.getHeading(), intake1Pose.getHeading())
-                .build();
-
-
-        readyIntake2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), pickup1Pose.getHeading())
-                .build();
-
-        /* This is our scorePickup2 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        intakePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), pickup1Pose.getHeading())
-                .build();
-
-        /* This is our grabPickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        scorePickup2 = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), pickup1Pose.getHeading())
-                .build();
-
         /* This is our scorePickup3 PathChain. We are using a single path with a BezierLine, which is a straight line. */
-        diddy = follower.pathBuilder()
-                .addPath(new BezierLine(pickup1Pose, pickup1Pose))
-                .setLinearHeadingInterpolation(pickup1Pose.getHeading(), pickup1Pose.getHeading())
+        park = follower.pathBuilder()
+                .addPath(new BezierLine(scorePose, parkPose))
+                .setLinearHeadingInterpolation(scorePose.getHeading(), parkPose.getHeading())
                 .build();
     }
 
@@ -98,16 +67,16 @@ public class RedFarAuto extends OpMode {
                 if (!follower.isBusy()) {
                     /* Score Preload */
                     currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    //shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    shooter.setVelocity(1280);
+                    robot.kickerUp();
                     pathTimer.resetTimer();
 
                     while (pathTimer.getElapsedTimeSeconds() <= 3) {}
-                    robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     shooter.shooterIdle();
                     robot.kickerDown();
                     pathTimer.resetTimer();
@@ -121,16 +90,17 @@ public class RedFarAuto extends OpMode {
                 /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the pickup1Pose's position */
                 if (!follower.isBusy()) {
                     pathTimer.resetTimer();
+                    follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER_INTAKE);
                     follower.followPath(intakePickup1, true);
                     setPathState(3);
                 }
                 break;
             case 3:
-                /* This case checks the robot's position and will wait until the robot position is close (1 inch away) from the scorePose's position */
                 if (!follower.isBusy()) {
-                    while (pathTimer.getElapsedTimeSeconds() <= 1.5) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     robot.intakeOff();
                     pathTimer.resetTimer();
+                    follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER);
                     follower.followPath(scorePickup1, true);
                     setPathState(4);
                 }
@@ -138,16 +108,16 @@ public class RedFarAuto extends OpMode {
             case 4:
                 if (!follower.isBusy()) {
                     currentPose = follower.getPose();
-                    turret.autoTurn(currentPose.getX(), currentPose.getY(), Math.toDegrees(currentPose.getHeading()));
-                    shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    //shooter.shooterOn(currentPose.getX(), currentPose.getY());
+                    shooter.setVelocity(1280);
+                    robot.kickerUp();
                     pathTimer.resetTimer();
 
                     while (pathTimer.getElapsedTimeSeconds() <= 2) {}
-                    robot.kickerUp();
                     robot.intakeShoot();
                     pathTimer.resetTimer();
 
-                    while (pathTimer.getElapsedTimeSeconds() <= 3) {}
+                    while (pathTimer.getElapsedTimeSeconds() <= 2) {}
                     robot.shooterOff();
                     robot.intakeOff();
                     robot.kickerDown();
@@ -159,7 +129,6 @@ public class RedFarAuto extends OpMode {
                 break;
             case 5:
                 if (!follower.isBusy()) {
-                    turret.reset();
                     pathTimer.resetTimer();
                     setPathState(-1);
                 }
@@ -216,7 +185,7 @@ public class RedFarAuto extends OpMode {
         follower = Constants.createFollower(hardwareMap);
         buildPaths();
         follower.setStartingPose(startPose);
-
+        follower.setMaxPower(RobotUtils.DRIVETRAIN_MAX_POWER);
     }
 
     /**

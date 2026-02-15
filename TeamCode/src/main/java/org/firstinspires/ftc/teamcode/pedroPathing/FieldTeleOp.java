@@ -166,16 +166,16 @@ public class FieldTeleOp extends OpMode {
         if (gamepad1.dpadUpWasPressed()) {
             currentPose = follower.getPose();
             this.telemetry.addLine("Shooter ON");
+            robot.kickerUp();
             double targetVelocity = shooter.shooterOn(currentPose.getX(), currentPose.getY());
             pathTimer.resetTimer();
-            while (pathTimer.getElapsedTimeSeconds() <= 1.0) {
+            while (pathTimer.getElapsedTimeSeconds() <= 0.8) {
                 double error = Math.abs(targetVelocity - shooter.getVelocity());
                 if (error <= 40.0) {
                     break;
                 }
             }
             robot.intakeShoot();
-            robot.kickerUp();
             pathTimer.resetTimer();
         }
 
@@ -233,13 +233,13 @@ public class FieldTeleOp extends OpMode {
 
     private void initStartingPose() {
         if (autonomusOpMode == AutonomusOpMode.BLUE_NEAR) {
-            startingPose = new Pose(24.037, 96.815);
+            startingPose = new Pose(23.754250386398773, 96.7774343122102);
         } else if (autonomusOpMode == AutonomusOpMode.BLUE_FAR) {
-            startingPose = new Pose(61.674, 35.700);
+            startingPose = new Pose(47.52086553323029, 23.73570324574961);
         } else if (autonomusOpMode == AutonomusOpMode.RED_NEAR) {
-            startingPose = new Pose(125.972, 100.376);
+            startingPose = new Pose(122.41112828438948, 95.92581143740341);
         } else if (autonomusOpMode == AutonomusOpMode.RED_FAR) {
-            startingPose = new Pose(83.478, 35.461);
+            startingPose = new Pose(96.66306027820714, 24.23338485316846);
         } else {
             startingPose = new Pose();
         }
